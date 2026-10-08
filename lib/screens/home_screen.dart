@@ -176,6 +176,17 @@ class HomeScreen extends ConsumerWidget {
                                     maxHeight: 14,
                                     barCount: 3,
                                   ),
+                                  if (audioNotifier.secondsRemaining > 0) ...[
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '• Auto-off ${audioNotifier.formattedTimeRemaining}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: subtitleColor,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ],
                             ),

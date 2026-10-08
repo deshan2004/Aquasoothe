@@ -51,6 +51,15 @@ class AudioServiceNotifier extends ChangeNotifier {
   int get secondsRemaining => _secondsRemaining;
   bool get isFadingOut => _isFadingOut;
 
+  String get formattedTimeRemaining {
+    if (_selectedPreset == SleepTimerPreset.allNight || _secondsRemaining <= 0) {
+      return 'Off';
+    }
+    final mins = _secondsRemaining ~/ 60;
+    final secs = _secondsRemaining % 60;
+    return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
   AudioServiceNotifier() {
     _initAudioSession();
     _initPlayerListeners();

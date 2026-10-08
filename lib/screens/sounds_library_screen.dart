@@ -108,46 +108,52 @@ class SoundsLibraryScreen extends ConsumerWidget {
               const SizedBox(height: 28),
 
               // Active Sound Controls Banner if playing
-              if (isPlaying) ...[
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF0C4648).withValues(alpha: 0.15)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0C4648).withValues(alpha: 0.06),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
+              // Active Sound & Auto-off Sleep Timer Controls Banner
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF0C4648).withValues(alpha: 0.15)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0C4648).withValues(alpha: 0.06),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    if (isPlaying) ...[
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              SoundVisualizerWidget(
-                                isPlaying: true,
-                                color: const Color(0xFF0C4648),
-                                barWidth: 3.5,
-                                maxHeight: 18,
-                                barCount: 4,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Playing: ${currentTrack.title}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0C4648),
-                                  fontSize: 15,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                SoundVisualizerWidget(
+                                  isPlaying: true,
+                                  color: const Color(0xFF0C4648),
+                                  barWidth: 3.5,
+                                  maxHeight: 18,
+                                  barCount: 4,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 10),
+                                Flexible(
+                                  child: Text(
+                                    'Playing: ${currentTrack.title}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0C4648),
+                                      fontSize: 15,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.pause_circle_filled_rounded, color: Color(0xFF0C4648), size: 30),
@@ -182,11 +188,72 @@ class SoundsLibraryScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
                     ],
-                  ),
+                    // Sleep Timer Header
+                    Row(
+                      children: [
+                        const Icon(Icons.timer_outlined, color: Color(0xFF0C4648), size: 20),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Auto-Off Sleep Timer',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0C4648)),
+                        ),
+                        const Spacer(),
+                        if (isPlaying && audioNotifier.secondsRemaining > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0C4648).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.hourglass_bottom_rounded, size: 14, color: Color(0xFF0C4648)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Off in ${audioNotifier.formattedTimeRemaining}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0C4648)),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // Sleep Timer Presets
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: SleepTimerPreset.values.map((preset) {
+                          final isSelected = audioNotifier.selectedPreset == preset;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ChoiceChip(
+                              label: Text(preset.label),
+                              selected: isSelected,
+                              selectedColor: const Color(0xFF0C4648),
+                              backgroundColor: const Color(0xFFEFF8F6),
+                              showCheckmark: false,
+                              labelStyle: TextStyle(
+                                color: isSelected ? Colors.white : const Color(0xFF0C4648),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              onSelected: (_) {
+                                audioNotifier.setTimerPreset(preset);
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-              ],
+              ),
+              const SizedBox(height: 20),
 
               // List of Sound Cards
               Column(
