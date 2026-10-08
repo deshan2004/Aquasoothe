@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'home_screen.dart';
 import 'sounds_library_screen.dart';
 import 'hydration_screen.dart';
 import 'settings_screen.dart';
-import '../providers/navigation_provider.dart';
 import '../widgets/mini_audio_player_bar.dart';
 
-class MainNavigationScreen extends ConsumerStatefulWidget {
+class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
 
   const MainNavigationScreen({super.key, this.initialIndex = 0});
 
   @override
-  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  late int _currentIndex;
+
   final List<Widget> _screens = const [
     HomeScreen(),
     SoundsLibraryScreen(),
@@ -27,30 +27,14 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialIndex != 0) {
-      Future.microtask(() {
-        ref.read(navigationTabProvider.notifier).state = widget.initialIndex;
-      });
-    }
+    _currentIndex = widget.initialIndex;
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentIndex = ref.watch(navigationTabProvider);
-
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    final navBg = isDark ? const Color(0xFF13272C) : Colors.white;
-    final indicatorColor = isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648);
-    final selectedIconColor = isDark ? const Color(0xFF0B191C) : Colors.white;
-    final unselectedIconColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A);
-    final selectedLabelColor = isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648);
-    final borderColor = isDark ? const Color(0xFF1E3A40) : const Color(0xFFE2EFEF);
-
     return Scaffold(
       body: IndexedStack(
-        index: currentIndex,
+        index: _currentIndex,
         children: _screens,
       ),
       bottomNavigationBar: Column(
@@ -58,44 +42,42 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
         children: [
           const MiniAudioPlayerBar(),
           Theme(
-            data: theme.copyWith(
+            data: Theme.of(context).copyWith(
               navigationBarTheme: NavigationBarThemeData(
-                backgroundColor: navBg,
-                indicatorColor: indicatorColor,
+                backgroundColor: Colors.white,
+                indicatorColor: const Color(0xFF0C4648),
                 iconTheme: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) {
-                    return IconThemeData(color: selectedIconColor, size: 24);
+                    return const IconThemeData(color: Colors.white, size: 24);
                   }
-                  return IconThemeData(color: unselectedIconColor, size: 22);
+                  return const IconThemeData(color: Color(0xFF5B787A), size: 22);
                 }),
                 labelTextStyle: WidgetStateProperty.resolveWith((states) {
                   if (states.contains(WidgetState.selected)) {
-                    return TextStyle(
+                    return const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: selectedLabelColor,
+                      color: Color(0xFF0C4648),
                     );
                   }
-                  return TextStyle(
+                  return const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: unselectedIconColor,
+                    color: Color(0xFF5B787A),
                   );
                 }),
               ),
             ),
             child: Container(
-              decoration: BoxDecoration(
-                color: navBg,
+              decoration: const BoxDecoration(
+                color: Colors.white,
                 border: Border(
-                  top: BorderSide(color: borderColor, width: 1.0),
+                  top: BorderSide(color: Color(0xFFE2EFEF), width: 1.0),
                 ),
               ),
               child: NavigationBar(
-                selectedIndex: currentIndex,
-                onDestinationSelected: (index) {
-                  ref.read(navigationTabProvider.notifier).state = index;
-                },
+                selectedIndex: _currentIndex,
+                onDestinationSelected: (index) => setState(() => _currentIndex = index),
                 elevation: 0,
                 height: 68,
                 destinations: const [

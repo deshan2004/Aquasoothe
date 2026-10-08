@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/audio_provider.dart';
-import '../providers/navigation_provider.dart';
+import '../screens/main_navigation_screen.dart';
 import 'sound_visualizer_widget.dart';
-
 
 /// Floating mini player bar displayed above the bottom navigation bar when audio is active.
 class MiniAudioPlayerBar extends ConsumerWidget {
@@ -54,9 +53,12 @@ class MiniAudioPlayerBar extends ConsumerWidget {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                ref.read(navigationTabProvider.notifier).state = 1;
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const MainNavigationScreen(initialIndex: 1),
+                  ),
+                );
               },
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,

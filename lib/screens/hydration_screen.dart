@@ -337,78 +337,61 @@ class HydrationScreen extends ConsumerWidget {
     return '$hour:$minute $period';
   }
 
-  void _showGoalSettingsDialog(BuildContext context, WidgetRef ref, HydrationGoal initialGoal) {
+  void _showGoalSettingsDialog(BuildContext context, WidgetRef ref, HydrationGoal goal) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) {
-        return Consumer(
-          builder: (context, refWatch, child) {
-            final currentGoal = refWatch.watch(hydrationProvider).goal;
-            final theme = Theme.of(context);
-            final isDark = theme.brightness == Brightness.dark;
-            final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
-            final iconColor = isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648);
-            final bg = isDark ? const Color(0xFF13272C) : Colors.white;
-
-            return Container(
-              padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hydration Goal Settings',
-                    style: TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.bold, color: textColor),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Daily Goal (ml):', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.remove_circle_outline, color: iconColor),
-                            onPressed: () {
-                              final newMl = (currentGoal.dailyTargetMl - 250).clamp(1000, 4000);
-                              ref.read(hydrationProvider.notifier).updateGoal(currentGoal.copyWith(dailyTargetMl: newMl));
-                            },
-                          ),
-                          Text('${currentGoal.dailyTargetMl} ml', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: textColor)),
-                          IconButton(
-                            icon: Icon(Icons.add_circle_outline, color: iconColor),
-                            onPressed: () {
-                              final newMl = (currentGoal.dailyTargetMl + 250).clamp(1000, 4000);
-                              ref.read(hydrationProvider.notifier).updateGoal(currentGoal.copyWith(dailyTargetMl: newMl));
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Save Goal'),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Hydration Goal Settings',
+              style: TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0C4648)),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Daily Goal (ml):', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline, color: Color(0xFF0C4648)),
+                      onPressed: () {
+                        final newMl = (goal.dailyTargetMl - 250).clamp(1000, 4000);
+                        ref.read(hydrationProvider.notifier).updateGoal(goal.copyWith(dailyTargetMl: newMl));
+                      },
                     ),
-                  ),
-                ],
+                    Text('${goal.dailyTargetMl} ml', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline, color: Color(0xFF0C4648)),
+                      onPressed: () {
+                        final newMl = (goal.dailyTargetMl + 250).clamp(1000, 4000);
+                        ref.read(hydrationProvider.notifier).updateGoal(goal.copyWith(dailyTargetMl: newMl));
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Save Goal'),
               ),
-            );
-          },
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -22,35 +22,55 @@ class SoundsLibraryScreen extends ConsumerWidget {
     final currentTrack = audioNotifier.currentTrack;
     final isPlaying = audioNotifier.isPlaying;
 
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
-    final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A);
-
-    final Map<String, CardStyle> cardStyles = isDark
-        ? {
-            'waterfall': const CardStyle(bg: Color(0xFF13272C), text: Color(0xFFE3F5F3), btnBg: Color(0xFF70D6CE), iconColor: Color(0xFF0B191C)),
-            'ocean': const CardStyle(bg: Color(0xFF162E34), text: Color(0xFFE3F5F3), btnBg: Color(0xFF70D6CE), iconColor: Color(0xFF0B191C)),
-            'rainfall': const CardStyle(bg: Color(0xFF18333A), text: Color(0xFFE3F5F3), btnBg: Color(0xFF70D6CE), iconColor: Color(0xFF0B191C)),
-            'pink_noise': const CardStyle(bg: Color(0xFF2C2220), text: Color(0xFFFFD5C0), btnBg: Color(0xFFF8AB80), iconColor: Color(0xFF4D2411)),
-            'brown_noise': const CardStyle(bg: Color(0xFF282522), text: Color(0xFFEFE6D8), btnBg: Color(0xFFCFC5B7), iconColor: Color(0xFF4D2411)),
-            'forest': const CardStyle(bg: Color(0xFF142B2F), text: Color(0xFFE3F5F3), btnBg: Color(0xFF70D6CE), iconColor: Color(0xFF0B191C)),
-            'crickets': const CardStyle(bg: Color(0xFF173136), text: Color(0xFFE3F5F3), btnBg: Color(0xFF70D6CE), iconColor: Color(0xFF0B191C)),
-          }
-        : {
-            'waterfall': const CardStyle(bg: Color(0xFFD5ECE7), text: Color(0xFF0C4648), btnBg: Color(0xFF0C4648), iconColor: Colors.white),
-            'ocean': const CardStyle(bg: Color(0xFFB9E3DE), text: Color(0xFF0C4648), btnBg: Color(0xFF0C4648), iconColor: Colors.white),
-            'rainfall': const CardStyle(bg: Color(0xFFC7DEDB), text: Color(0xFF0C4648), btnBg: Color(0xFF0C4648), iconColor: Colors.white),
-            'pink_noise': const CardStyle(bg: Color(0xFFF7BD9E), text: Color(0xFF4D2411), btnBg: Color(0xFF5C2B14), iconColor: Colors.white),
-            'brown_noise': const CardStyle(bg: Color(0xFFCFC5B7), text: Color(0xFF4D2411), btnBg: Color(0xFF4D2411), iconColor: Colors.white),
-            'forest': const CardStyle(bg: Color(0xFFD2EAE4), text: Color(0xFF0C4648), btnBg: Color(0xFF0C4648), iconColor: Colors.white),
-            'crickets': const CardStyle(bg: Color(0xFFC4E4E0), text: Color(0xFF0C4648), btnBg: Color(0xFF0C4648), iconColor: Colors.white),
-          };
+    final Map<String, CardStyle> cardStyles = {
+      'waterfall': const CardStyle(
+        bg: Color(0xFFD5ECE7),
+        text: Color(0xFF0C4648),
+        btnBg: Color(0xFF0C4648),
+        iconColor: Colors.white,
+      ),
+      'ocean': const CardStyle(
+        bg: Color(0xFFB9E3DE),
+        text: Color(0xFF0C4648),
+        btnBg: Color(0xFF0C4648),
+        iconColor: Colors.white,
+      ),
+      'rainfall': const CardStyle(
+        bg: Color(0xFFC7DEDB),
+        text: Color(0xFF0C4648),
+        btnBg: Color(0xFF0C4648),
+        iconColor: Colors.white,
+      ),
+      'pink_noise': const CardStyle(
+        bg: Color(0xFFF7BD9E),
+        text: Color(0xFF4D2411),
+        btnBg: Color(0xFF5C2B14),
+        iconColor: Colors.white,
+      ),
+      'brown_noise': const CardStyle(
+        bg: Color(0xFFCFC5B7),
+        text: Color(0xFF4D2411),
+        btnBg: Color(0xFF4D2411),
+        iconColor: Colors.white,
+      ),
+      'forest': const CardStyle(
+        bg: Color(0xFFD2EAE4),
+        text: Color(0xFF0C4648),
+        btnBg: Color(0xFF0C4648),
+        iconColor: Colors.white,
+      ),
+      'crickets': const CardStyle(
+        bg: Color(0xFFC4E4E0),
+        text: Color(0xFF0C4648),
+        btnBg: Color(0xFF0C4648),
+        iconColor: Colors.white,
+      ),
+    };
 
     final allTracks = [...defaultTracks, ...customSounds];
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEFF8F6),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -64,23 +84,23 @@ class SoundsLibraryScreen extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // Sleep Soundscapes Heading & Subtitle
-              Text(
+              const Text(
                 'Sleep Soundscapes',
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontFamily: 'serif',
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: textColor,
+                  color: Color(0xFF0C4648),
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
+              const Text(
                 'Curated audio for deep restorative rest.',
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontSize: 16,
-                  color: subtitleColor,
+                  color: Color(0xFF5B787A),
                   height: 1.3,
                 ),
               ),
@@ -93,12 +113,12 @@ class SoundsLibraryScreen extends ConsumerWidget {
                   duration: const Duration(milliseconds: 300),
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF13272C) : Colors.white,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: isDark ? const Color(0xFF1E3A40) : const Color(0xFF0C4648).withValues(alpha: 0.15)),
+                    border: Border.all(color: const Color(0xFF0C4648).withValues(alpha: 0.15)),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF0C4648).withValues(alpha: isDark ? 0.2 : 0.06),
+                        color: const Color(0xFF0C4648).withValues(alpha: 0.06),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -113,7 +133,7 @@ class SoundsLibraryScreen extends ConsumerWidget {
                             children: [
                               SoundVisualizerWidget(
                                 isPlaying: true,
-                                color: textColor,
+                                color: const Color(0xFF0C4648),
                                 barWidth: 3.5,
                                 maxHeight: 18,
                                 barCount: 4,
@@ -121,16 +141,16 @@ class SoundsLibraryScreen extends ConsumerWidget {
                               const SizedBox(width: 10),
                               Text(
                                 'Playing: ${currentTrack.title}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: textColor,
+                                  color: Color(0xFF0C4648),
                                   fontSize: 15,
                                 ),
                               ),
                             ],
                           ),
                           IconButton(
-                            icon: Icon(Icons.pause_circle_filled_rounded, color: textColor, size: 30),
+                            icon: const Icon(Icons.pause_circle_filled_rounded, color: Color(0xFF0C4648), size: 30),
                             onPressed: () => audioNotifier.pause(),
                           ),
                         ],
@@ -138,14 +158,14 @@ class SoundsLibraryScreen extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.volume_up_rounded, color: textColor, size: 20),
+                          const Icon(Icons.volume_up_rounded, color: Color(0xFF0C4648), size: 20),
                           Expanded(
                             child: SliderTheme(
                               data: SliderThemeData(
                                 trackHeight: 4,
-                                activeTrackColor: textColor,
-                                inactiveTrackColor: textColor.withValues(alpha: 0.2),
-                                thumbColor: textColor,
+                                activeTrackColor: const Color(0xFF0C4648),
+                                inactiveTrackColor: const Color(0xFF0C4648).withValues(alpha: 0.15),
+                                thumbColor: const Color(0xFF0C4648),
                                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
                               ),
                               child: Slider(
@@ -158,7 +178,7 @@ class SoundsLibraryScreen extends ConsumerWidget {
                           ),
                           Text(
                             '${(audioNotifier.volume * 100).round()}%',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 13),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0C4648), fontSize: 13),
                           ),
                         ],
                       ),
@@ -174,11 +194,11 @@ class SoundsLibraryScreen extends ConsumerWidget {
                   final isSelected = track.id == currentTrack.id;
                   final isTrackPlaying = isSelected && isPlaying;
                   final style = cardStyles[track.id] ??
-                      CardStyle(
-                        bg: isDark ? const Color(0xFF13272C) : const Color(0xFFD5ECE7),
-                        text: textColor,
-                        btnBg: isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648),
-                        iconColor: isDark ? const Color(0xFF0B191C) : Colors.white,
+                      const CardStyle(
+                        bg: Color(0xFFD5ECE7),
+                        text: Color(0xFF0C4648),
+                        btnBg: Color(0xFF0C4648),
+                        iconColor: Colors.white,
                       );
 
                   return Container(
@@ -275,18 +295,18 @@ class SoundsLibraryScreen extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF13272C) : Colors.white,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648), width: 1.5),
+                    border: Border.all(color: const Color(0xFF0C4648), width: 1.5),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.auto_awesome_rounded, size: 22, color: isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648)),
-                      const SizedBox(width: 10),
+                      Icon(Icons.auto_awesome_rounded, size: 22, color: Color(0xFF0C4648)),
+                      SizedBox(width: 10),
                       Text(
                         'Generative AI Sound Studio',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648)),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0C4648)),
                       ),
                     ],
                   ),

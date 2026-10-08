@@ -17,11 +17,6 @@ class AquaSootheHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
-    final iconColor = isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648);
-
     final logoWidget = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -32,7 +27,7 @@ class AquaSootheHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0C4648).withValues(alpha: isDark ? 0.2 : 0.08),
+                  color: const Color(0xFF0C4648).withValues(alpha: 0.08),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -48,7 +43,7 @@ class AquaSootheHeader extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) => Icon(
                   Icons.waves_rounded,
                   size: iconSize,
-                  color: iconColor,
+                  color: const Color(0xFF0C4648),
                 ),
               ),
             ),
@@ -57,7 +52,7 @@ class AquaSootheHeader extends StatelessWidget {
           Icon(
             Icons.waves_rounded,
             size: iconSize,
-            color: iconColor,
+            color: const Color(0xFF0C4648),
           ),
         const SizedBox(width: 10),
         Text(
@@ -66,7 +61,7 @@ class AquaSootheHeader extends StatelessWidget {
             fontFamily: 'serif',
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
-            color: textColor,
+            color: const Color(0xFF0C4648),
             letterSpacing: -0.3,
           ),
         ),
@@ -79,5 +74,4 @@ class AquaSootheHeader extends StatelessWidget {
     return logoWidget;
   }
 }
-
 

@@ -12,7 +12,7 @@ import '../widgets/sleep_rating_dialog.dart';
 import '../widgets/scale_button.dart';
 import '../widgets/sound_visualizer_widget.dart';
 import '../widgets/water_wave_progress.dart';
-import '../providers/navigation_provider.dart';
+import 'main_navigation_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -407,7 +407,11 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(width: 16),
                     TextButton.icon(
                       onPressed: () {
-                        ref.read(navigationTabProvider.notifier).state = 1;
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => const MainNavigationScreen(initialIndex: 1),
+                          ),
+                        );
                       },
                       icon: Icon(Icons.tune_rounded, size: 18, color: textColor),
                       label: Text(
@@ -415,7 +419,6 @@ class HomeScreen extends ConsumerWidget {
                         style: TextStyle(color: textColor, fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                     ),
-
                   ],
                 ),
                 const SizedBox(height: 16),

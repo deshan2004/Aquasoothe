@@ -19,15 +19,8 @@ class CaregiverScreen extends ConsumerWidget {
 
     final isEnabled = caregiverSettings.isEnabled;
 
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
-    final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A);
-    final cardBg = isDark ? const Color(0xFF13272C) : Colors.white;
-    final cardBorder = isDark ? const Color(0xFF1E3A40) : const Color(0xFFD6EBE8);
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEFF8F6),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -40,21 +33,21 @@ class CaregiverScreen extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // Title & Subtitle
-              Text(
+              const Text(
                 'Caregiver Connection',
                 style: TextStyle(
                   fontFamily: 'serif',
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: textColor,
+                  color: Color(0xFF0C4648),
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
+              const Text(
                 'Allow a trusted family member or caregiver to monitor your hydration & sleep logs.',
                 style: TextStyle(
                   fontSize: 15,
-                  color: subtitleColor,
+                  color: Color(0xFF5B787A),
                   height: 1.4,
                 ),
               ),
@@ -66,9 +59,8 @@ class CaregiverScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF13272C) : const Color(0xFFE8F6F4),
+                  color: const Color(0xFFE8F6F4),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: cardBorder),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -77,12 +69,12 @@ class CaregiverScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Enable Caregiver Sharing',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: textColor,
+                              color: Color(0xFF0C4648),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -90,7 +82,7 @@ class CaregiverScreen extends ConsumerWidget {
                             isEnabled ? 'Active - Progress is being shared' : 'Disabled - Private mode',
                             style: TextStyle(
                               fontSize: 14,
-                              color: isEnabled ? const Color(0xFF70D6CE) : subtitleColor,
+                              color: isEnabled ? const Color(0xFF15803D) : const Color(0xFF5B787A),
                               fontWeight: isEnabled ? FontWeight.bold : FontWeight.normal,
                             ),
                           ),
@@ -100,9 +92,9 @@ class CaregiverScreen extends ConsumerWidget {
                     Switch.adaptive(
                       value: isEnabled,
                       activeThumbColor: Colors.white,
-                      activeTrackColor: isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648),
+                      activeTrackColor: const Color(0xFF0C4648),
                       inactiveThumbColor: Colors.white,
-                      inactiveTrackColor: isDark ? const Color(0xFF32545A) : const Color(0xFFCBE3DF),
+                      inactiveTrackColor: const Color(0xFFCBE3DF),
                       onChanged: (val) async {
                         await caregiverNotifier.toggleEnabled(val);
                       },
@@ -115,24 +107,24 @@ class CaregiverScreen extends ConsumerWidget {
 
               if (isEnabled) ...[
                 // Pair Code Box Card
-                _buildInviteCodeCard(context, caregiverSettings, caregiverNotifier, isDark, textColor, subtitleColor, cardBg, cardBorder),
+                _buildInviteCodeCard(context, caregiverSettings, caregiverNotifier),
 
                 const SizedBox(height: 24),
 
                 // Live Caregiver Feed Preview Card
-                Text(
+                const Text(
                   'Caregiver Feed Preview',
                   style: TextStyle(
                     fontFamily: 'serif',
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: textColor,
+                    color: Color(0xFF0C4648),
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildCaregiverViewPreview(context, hydrationState, audioNotifier, caregiverSettings, isDark, textColor, subtitleColor, cardBg, cardBorder),
+                _buildCaregiverViewPreview(context, hydrationState, audioNotifier, caregiverSettings),
               ] else ...[
-                _buildDisabledNotice(isDark, textColor, subtitleColor, cardBg, cardBorder),
+                _buildDisabledNotice(),
               ],
             ],
           ),
@@ -141,25 +133,15 @@ class CaregiverScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInviteCodeCard(
-    BuildContext context,
-    caregiverSettings,
-    caregiverNotifier,
-    bool isDark,
-    Color textColor,
-    Color subtitleColor,
-    Color cardBg,
-    Color cardBorder,
-  ) {
+  Widget _buildInviteCodeCard(BuildContext context, caregiverSettings, caregiverNotifier) {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cardBorder),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0C4648).withValues(alpha: isDark ? 0.2 : 0.04),
+            color: const Color(0xFF0C4648).withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -168,26 +150,26 @@ class CaregiverScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'YOUR UNIQUE PAIR CODE',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
-              color: subtitleColor,
+              color: Color(0xFF5B787A),
             ),
           ),
           const SizedBox(height: 10),
-          Text(
+          const Text(
             'Share this code with your trusted caregiver to pair their phone:',
-            style: TextStyle(fontSize: 15, color: subtitleColor),
+            style: TextStyle(fontSize: 15, color: Color(0xFF5B787A)),
           ),
           const SizedBox(height: 16),
 
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0B191C) : const Color(0xFF0C4648),
+              color: const Color(0xFF0C4648),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -235,11 +217,6 @@ class CaregiverScreen extends ConsumerWidget {
     hydrationState,
     audioNotifier,
     caregiverSettings,
-    bool isDark,
-    Color textColor,
-    Color subtitleColor,
-    Color cardBg,
-    Color cardBorder,
   ) {
     final goal = hydrationState.goal;
     final totalMl = hydrationState.todayTotalMl;
@@ -248,31 +225,31 @@ class CaregiverScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cardBorder),
+        border: Border.all(color: const Color(0xFFD6EBE8)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.visibility_rounded, size: 22, color: isDark ? const Color(0xFF70D6CE) : const Color(0xFF0C4648)),
+              const Icon(Icons.visibility_rounded, size: 22, color: Color(0xFF0C4648)),
               const SizedBox(width: 8),
               Text(
                 'Caregiver: ${caregiverSettings.caregiverName}',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: textColor),
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0C4648)),
               ),
             ],
           ),
-          Divider(height: 24, color: cardBorder),
+          const Divider(height: 24, color: Color(0xFFD6EBE8)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Today\'s Intake', style: TextStyle(fontSize: 15, color: subtitleColor)),
+              const Text('Today\'s Intake', style: TextStyle(fontSize: 15, color: Color(0xFF5B787A))),
               Text(
                 '$totalMl / ${goal.dailyTargetMl} ml',
-                style: TextStyle(fontFamily: 'serif', fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+                style: const TextStyle(fontFamily: 'serif', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0C4648)),
               ),
             ],
           ),
@@ -280,13 +257,13 @@ class CaregiverScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Status Alert', style: TextStyle(fontSize: 15, color: subtitleColor)),
+              const Text('Status Alert', style: TextStyle(fontSize: 15, color: Color(0xFF5B787A))),
               Text(
                 isMet ? 'Goal Completed' : 'On Track',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: isMet ? (isDark ? const Color(0xFF70D6CE) : const Color(0xFF15803D)) : textColor,
+                  color: isMet ? const Color(0xFF15803D) : const Color(0xFF0C4648),
                 ),
               ),
             ],
@@ -295,10 +272,10 @@ class CaregiverScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Last Synced', style: TextStyle(fontSize: 15, color: subtitleColor)),
+              const Text('Last Synced', style: TextStyle(fontSize: 15, color: Color(0xFF5B787A))),
               Text(
                 DateFormat('h:mm a').format(DateTime.now()),
-                style: TextStyle(fontSize: 15, color: subtitleColor),
+                style: const TextStyle(fontSize: 15, color: Color(0xFF5B787A)),
               ),
             ],
           ),
@@ -307,33 +284,27 @@ class CaregiverScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDisabledNotice(
-    bool isDark,
-    Color textColor,
-    Color subtitleColor,
-    Color cardBg,
-    Color cardBorder,
-  ) {
+  Widget _buildDisabledNotice() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cardBorder),
+        border: Border.all(color: const Color(0xFFD6EBE8)),
       ),
-      child: Column(
+      child: const Column(
         children: [
-          Icon(Icons.shield_outlined, size: 54, color: subtitleColor),
-          const SizedBox(height: 14),
+          Icon(Icons.shield_outlined, size: 54, color: Color(0xFF5B787A)),
+          SizedBox(height: 14),
           Text(
             'Your Privacy is Protected',
-            style: TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.bold, color: textColor),
+            style: TextStyle(fontFamily: 'serif', fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0C4648)),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             'Caregiver sharing is completely optional. Turn on the switch above anytime to share your progress.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: subtitleColor, height: 1.4),
+            style: TextStyle(fontSize: 15, color: Color(0xFF5B787A), height: 1.4),
           ),
         ],
       ),
