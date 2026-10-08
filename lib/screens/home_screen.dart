@@ -8,6 +8,7 @@ import '../providers/settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/aquasoothe_header.dart';
 import '../widgets/ai_sound_matcher_dialog.dart';
+import '../widgets/soundscape_mixer_dialog.dart';
 import '../widgets/sleep_rating_dialog.dart';
 import '../widgets/scale_button.dart';
 import '../widgets/sound_visualizer_widget.dart';
@@ -394,10 +395,29 @@ class HomeScreen extends ConsumerWidget {
 
                 const SizedBox(height: 20),
 
-                // Quick Launcher for AI Matcher & Sound Library
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                // Quick Launcher for Sound Studio, AI Matcher & Sound Library
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
+                    TextButton.icon(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                          ),
+                          builder: (_) => const SoundscapeMixerDialog(),
+                        );
+                      },
+                      icon: Icon(Icons.layers_rounded, size: 18, color: textColor),
+                      label: Text(
+                        'Sound Studio',
+                        style: TextStyle(color: textColor, fontWeight: FontWeight.w700, fontSize: 14),
+                      ),
+                    ),
                     TextButton.icon(
                       onPressed: () {
                         showModalBottomSheet(
@@ -411,11 +431,10 @@ class HomeScreen extends ConsumerWidget {
                       },
                       icon: Icon(Icons.auto_awesome_rounded, size: 18, color: textColor),
                       label: Text(
-                        'AI Sound Matcher',
+                        'AI Matcher',
                         style: TextStyle(color: textColor, fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                     ),
-                    const SizedBox(width: 16),
                     TextButton.icon(
                       onPressed: () {
                         Navigator.of(context).pushReplacement(

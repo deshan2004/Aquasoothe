@@ -121,12 +121,21 @@ class AudioServiceNotifier extends ChangeNotifier {
     }
   }
 
-  void toggleMixer(bool enabled) {
+  Future<void> toggleMixer(bool enabled) async {
     _isMixerEnabled = enabled;
     if (!enabled) {
-      _secondaryPlayer.stop();
+      await _secondaryPlayer.stop();
     } else if (_isPlaying && _secondaryTrack != null) {
-      _secondaryPlayer.play();
+      try {
+        if (_secondaryPlayer.audioSource == null) {
+          await _secondaryPlayer.setAsset(_secondaryTrack!.assetPath);
+          await _secondaryPlayer.setLoopMode(LoopMode.one);
+        }
+        await _secondaryPlayer.setVolume(_secondaryVolume);
+        await _secondaryPlayer.play();
+      } catch (e) {
+        debugPrint("Error playing secondary track in mixer: $e");
+      }
     }
     notifyListeners();
   }

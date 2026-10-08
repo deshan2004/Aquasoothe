@@ -8,6 +8,7 @@ import '../services/audio_service.dart';
 import '../widgets/aquasoothe_header.dart';
 import '../widgets/scale_button.dart';
 import '../widgets/sound_visualizer_widget.dart';
+import '../widgets/soundscape_mixer_dialog.dart';
 import 'ai_sound_generator_screen.dart';
 
 class SoundsLibraryScreen extends ConsumerWidget {
@@ -350,6 +351,48 @@ class SoundsLibraryScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: 24),
+
+              // Soundscape Studio Dual Layer Mixer Launcher Button
+              ScaleButton(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                    ),
+                    builder: (_) => const SoundscapeMixerDialog(),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0C4648),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0C4648).withValues(alpha: 0.25),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.tune_rounded, size: 22, color: Colors.white),
+                      const SizedBox(width: 10),
+                      Text(
+                        audioNotifier.isMixerEnabled ? 'Soundscape Studio (Active Mix)' : 'Custom Soundscape Mixer',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
 
               // AI Sound Studio launcher button
               ScaleButton(
