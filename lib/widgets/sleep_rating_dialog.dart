@@ -1,32 +1,36 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/settings_provider.dart';
 import 'scale_button.dart';
 
 /// Frosted Glass Modal Dialog for morning sleep quality check-in & rating.
-class SleepRatingDialog extends StatefulWidget {
+class SleepRatingDialog extends ConsumerStatefulWidget {
   const SleepRatingDialog({super.key});
 
   @override
-  State<SleepRatingDialog> createState() => _SleepRatingDialogState();
+  ConsumerState<SleepRatingDialog> createState() => _SleepRatingDialogState();
 }
 
-class _SleepRatingDialogState extends State<SleepRatingDialog> {
+class _SleepRatingDialogState extends ConsumerState<SleepRatingDialog> {
   int _selectedRating = 4;
   final Set<String> _selectedTags = {'Restful', 'Fresh Morning'};
 
-  final List<String> _availableTags = [
-    'Restful',
-    'Deep Sleep',
-    'Interrupted',
-    'Fresh Morning',
-    'Calm Mind',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final settingsState = ref.watch(settingsProvider);
+    final isSi = settingsState.isSinhala;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
     final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A);
+
+    final tags = [
+      {'en': 'Restful', 'si': 'සුවබරයි'},
+      {'en': 'Deep Sleep', 'si': 'ගැඹුරු නින්දක්'},
+      {'en': 'Interrupted', 'si': 'කඩින් කඩ අවදිවීම්'},
+      {'en': 'Fresh Morning', 'si': 'නැවුම් උදෑසනක්'},
+      {'en': 'Calm Mind', 'si': 'සන්සුන් මනසක්'},
+    ];
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -34,24 +38,24 @@ class _SleepRatingDialogState extends State<SleepRatingDialog> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: Container(
             padding: const EdgeInsets.all(24.0),
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF13272C).withValues(alpha: 0.85)
-                  : Colors.white.withValues(alpha: 0.88),
+                  ? const Color(0xFF13272C).withValues(alpha: 0.90)
+                  : Colors.white.withValues(alpha: 0.90),
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.7),
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.8),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 28,
+                  color: const Color(0xFF0C4648).withValues(alpha: isDark ? 0.4 : 0.15),
+                  blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
               ],
@@ -75,19 +79,21 @@ class _SleepRatingDialogState extends State<SleepRatingDialog> {
                 const SizedBox(height: 16),
 
                 Text(
-                  'Morning Sleep Journal',
+                  isSi ? 'උදෑසන නින්දේ සුවතාවය' : 'Morning Sleep Journal',
                   style: TextStyle(
                     fontFamily: 'serif',
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: textColor,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'How restful was your sleep last night?',
+                  isSi
+                      ? 'ඊයේ රාත්‍රියේ නින්ද කෙතරම් සුවදායක වීද?'
+                      : 'How restful was your sleep last night?',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: subtitleColor),
+                  style: TextStyle(fontSize: 14, color: subtitleColor),
                 ),
 
                 const SizedBox(height: 18),
@@ -120,15 +126,18 @@ class _SleepRatingDialogState extends State<SleepRatingDialog> {
                   spacing: 8,
                   runSpacing: 8,
                   alignment: WrapAlignment.center,
-                  children: _availableTags.map((tag) {
-                    final isSelected = _selectedTags.contains(tag);
+                  children: tags.map((t) {
+                    final enKey = t['en']!;
+                    final label = isSi ? t['si']! : enKey;
+                    final isSelected = _selectedTags.contains(enKey);
+
                     return ScaleButton(
                       onTap: () {
                         setState(() {
                           if (isSelected) {
-                            _selectedTags.remove(tag);
+                            _selectedTags.remove(enKey);
                           } else {
-                            _selectedTags.add(tag);
+                            _selectedTags.add(enKey);
                           }
                         });
                       },
@@ -147,7 +156,7 @@ class _SleepRatingDialogState extends State<SleepRatingDialog> {
                           ),
                         ),
                         child: Text(
-                          tag,
+                          label,
                           style: TextStyle(
                             fontSize: 13,
                             color: isSelected ? Colors.white : textColor,
@@ -167,7 +176,12 @@ class _SleepRatingDialogState extends State<SleepRatingDialog> {
                     Navigator.of(context).pop(_selectedRating);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Logged $_selectedRating-Star Sleep Rating!', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        content: Text(
+                          isSi
+                              ? 'තරු $_selectedRating ක නින්දේ සුවතාවය සටහන් කළා!'
+                              : 'Logged $_selectedRating-Star Sleep Rating!',
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
                         backgroundColor: const Color(0xFF0C4648),
                         behavior: SnackBarBehavior.floating,
                       ),
@@ -175,7 +189,7 @@ class _SleepRatingDialogState extends State<SleepRatingDialog> {
                   },
                   child: Container(
                     width: double.infinity,
-                    height: 52,
+                    height: 50,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFF0C4648), Color(0xFF165C5F)],
@@ -192,10 +206,10 @@ class _SleepRatingDialogState extends State<SleepRatingDialog> {
                         ),
                       ],
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'Save Journal Entry',
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
+                        isSi ? 'සටහන් කර සුරකින්න' : 'Save Journal Entry',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
                   ),

@@ -2,13 +2,18 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/hydration_model.dart';
+import '../models/medication_model.dart';
 import '../providers/hydration_provider.dart';
 import '../providers/settings_provider.dart';
+import '../providers/medication_provider.dart';
+import '../providers/weather_hydration_provider.dart';
 import '../widgets/aquasoothe_header.dart';
 import '../widgets/scale_button.dart';
 import '../widgets/water_wave_progress.dart';
 import '../widgets/weekly_hydration_chart.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/medication_schedule_sheet.dart';
+import '../widgets/weather_hydration_sheet.dart';
 
 class HydrationScreen extends ConsumerWidget {
   const HydrationScreen({super.key});
@@ -33,6 +38,18 @@ class HydrationScreen extends ConsumerWidget {
         : (isSi ? '${goal.dailyTargetCups} කෝප්ප ඉලක්කය' : '${goal.dailyTargetCups} cups goal');
 
     final logs = hydrationState.todayLogs;
+
+    final medicationList = ref.watch(medicationProvider);
+    final weatherState = ref.watch(weatherHydrationProvider);
+    final medicationNotifier = ref.read(medicationProvider.notifier);
+
+    MedicationItem? nextMed;
+    try {
+      nextMed = medicationList.firstWhere((m) => !m.isTakenToday);
+    } catch (_) {
+      nextMed = medicationList.isNotEmpty ? medicationList.first : null;
+    }
+    final allMedsTaken = medicationList.isNotEmpty && medicationList.every((m) => m.isTakenToday);
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -122,7 +139,182 @@ class HydrationScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+
+                    // 🌡️ Smart Weather Hydration Glass Banner
+                    ScaleButton(
+                      onTap: () => showWeatherHydrationModal(context),
+                      child: GlassCard(
+                        borderRadius: 20,
+                        blur: 16,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        margin: EdgeInsets.zero,
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFFF7E47).withValues(alpha: 0.2),
+                              ),
+                              child: const Icon(Icons.thermostat_rounded, color: Color(0xFFFF7E47), size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          isSi ? 'කාලගුණය අනුව ජල ඉලක්කය' : 'Smart Weather Hydration',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: textColor,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFF7E47).withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          '${weatherState.temperatureCelsius.toStringAsFixed(0)}°C ${weatherState.calculatedBonusMl > 0 ? "+${weatherState.calculatedBonusMl}ml" : ""}',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFFFF7E47),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    isSi ? weatherState.summarySi : weatherState.summaryEn,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 12, color: subtitleColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: subtitleColor),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // 💊 Medication Schedule Quick Shortcut Glass Pill
+                    ScaleButton(
+                      onTap: () => showMedicationScheduleModal(context),
+                      child: GlassCard(
+                        borderRadius: 20,
+                        blur: 16,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        margin: EdgeInsets.zero,
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFFFAE85).withValues(alpha: 0.2),
+                              ),
+                              child: const Icon(Icons.medication_rounded, color: Color(0xFFE67E33), size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isSi ? 'බෙහෙත් සහ වතුර කාලසටහන' : 'Medication & Water Routine',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    allMedsTaken
+                                        ? (isSi ? 'අද සියලුම පෙති පානය කර ඇත' : 'All daily pills taken')
+                                        : (nextMed != null
+                                            ? (isSi
+                                                ? 'ඊළඟ පෙත්ත: ${nextMed.nameSi} (${nextMed.scheduledTime})'
+                                                : 'Next: ${nextMed.nameEn} (${nextMed.scheduledTime})')
+                                            : (isSi ? 'කාලසටහන බලන්න' : 'View Schedule')),
+                                    style: TextStyle(fontSize: 12, color: subtitleColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!allMedsTaken && nextMed != null)
+                              ScaleButton(
+                                onTap: () async {
+                                  final targetMed = nextMed;
+                                  if (targetMed == null) return;
+                                  final logged = await medicationNotifier.takeMedication(
+                                    targetMed.id,
+                                    ref.read(hydrationProvider.notifier),
+                                  );
+                                  if (context.mounted && logged != null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isSi
+                                              ? '💊 ${targetMed.nameSi} බී වතුර ${logged}ml ලොග් කළා!'
+                                              : '💊 Took ${targetMed.nameEn} + ${logged}ml water!',
+                                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                        ),
+                                        backgroundColor: const Color(0xFF0C4648),
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFFFFAE85), Color(0xFFF89966)],
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.check_rounded, size: 14, color: Color(0xFF4D2411)),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        isSi ? 'බිව්වා' : 'Take',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF4D2411),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            else
+                              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: subtitleColor),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
 
                     // Animated Fluid Wave Progress Inside Glass Card
                     GlassCard(

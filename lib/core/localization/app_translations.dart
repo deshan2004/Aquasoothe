@@ -49,12 +49,27 @@ class AppStrings {
   static String browseSoundscapes(bool isSi) =>
       isSi ? 'සියලු ශබ්ද ගවේෂණය' : 'Browse All Soundscapes';
 
+  // Guided Breathing Exercise
+  static String breathingTitle(bool isSi) => isSi ? 'සන්සුන් හුස්ම ගැනීමේ අභ්‍යාසය' : 'Guided Breathing Exercise';
+  static String breathingSubtitle(bool isSi) =>
+      isSi ? 'නින්දට පෙර ආතතිය දුරු කර සන්සුන් වන්න' : 'Calm your mind & lower heart rate for deep sleep';
+  static String inhale(bool isSi) => isSi ? 'හුස්ම ගන්න' : 'Inhale deeply';
+  static String hold(bool isSi) => isSi ? 'රඳවා ගන්න' : 'Hold breath';
+  static String exhale(bool isSi) => isSi ? 'හුස්ම පිටකරන්න' : 'Exhale slowly';
+  static String startBreathing(bool isSi) => isSi ? 'ආරම්භ කරන්න' : 'Start Session';
+  static String pauseBreathing(bool isSi) => isSi ? 'නවතන්න' : 'Pause Session';
+  static String completedCycles(bool isSi, int count) =>
+      isSi ? 'සම්පූර්ණ කළ වට: $count' : 'Completed Cycles: $count';
+  static String pattern478(bool isSi) => isSi ? '4-7-8 සුව නින්ද' : '4-7-8 Deep Sleep';
+  static String patternBox(bool isSi) => isSi ? '4-4-4-4 සමබර හුස්ම' : 'Box Breathing (4-4-4-4)';
+  static String patternGentle(bool isSi) => isSi ? '4-6 සරල සුවතාවය' : 'Gentle Relax (4-6)';
+
   // Settings Screen
   static String settingsTitle(bool isSi) => isSi ? 'සැකසුම්' : 'Settings';
   static String languageSection(bool isSi) => isSi ? 'භාෂාව' : 'Language';
   static String languageSelectTitle(bool isSi) =>
       isSi ? 'යෙදුමේ භාෂාව තෝරන්න' : 'App Language';
-  static String english(bool isSi) => isSi ? 'English (ඉංග්‍රීසි)' : 'English';
+  static String english(bool isSi) => isSi ? 'English (United States)' : 'English';
   static String sinhala(bool isSi) => isSi ? 'සිංහල (Sinhala)' : 'සිංහල (Sinhala)';
   static String appearanceSection(bool isSi) =>
       isSi ? 'පෙනුම සහ තේමාව' : 'Appearance & Bedtime Theme';

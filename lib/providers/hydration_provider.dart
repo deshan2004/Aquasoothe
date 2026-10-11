@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/hydration_model.dart';
 import '../repositories/hydration_repository.dart';
+import '../services/notification_service.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('SharedPreferences must be initialized in main()');
@@ -56,7 +57,9 @@ class HydrationNotifier extends StateNotifier<HydrationState> {
           logs: _repository.getLogs(),
           todayTotalMl: _repository.getTodayTotalMl(),
           past7DaysTotals: _repository.getPast7DaysTotals(),
-        ));
+        )) {
+    NotificationService().scheduleHydrationReminders(state.goal);
+  }
 
   Future<void> logWater(int amountMl) async {
     final newLog = HydrationLog(
@@ -70,9 +73,10 @@ class HydrationNotifier extends StateNotifier<HydrationState> {
     _refreshState();
   }
 
-  Future<void> updateGoal(HydrationGoal newGoal) async {
+  Future<void> updateGoal(HydrationGoal newGoal, {bool isSinhala = false}) async {
     await _repository.saveGoal(newGoal);
     _refreshState();
+    await NotificationService().scheduleHydrationReminders(newGoal, isSinhala: isSinhala);
   }
 
   Future<void> clearAllLogs() async {

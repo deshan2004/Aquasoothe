@@ -4,10 +4,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/audio_provider.dart';
 import '../providers/hydration_provider.dart';
+import '../providers/medication_provider.dart';
+import '../providers/weather_hydration_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/voice_command_service.dart';
 import 'glass_card.dart';
 import 'scale_button.dart';
+import 'breathing_exercise_sheet.dart';
+import 'gentle_alarm_sheet.dart';
+import 'medication_schedule_sheet.dart';
+import 'weather_hydration_sheet.dart';
 
 /// Shows the interactive Voice Assistant Sheet from anywhere in the app.
 void showVoiceAssistantModal(BuildContext context) {
@@ -48,6 +54,26 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
           'cmd': 'Log 250ml water',
         },
         {
+          'title': '💊 බෙහෙත් බිව්වා (වතුර 250ml)',
+          'sub': 'පෙති සහ වතුර ලොග් කිරීම',
+          'cmd': 'බෙහෙත් බිව්වා',
+        },
+        {
+          'title': '🌅 මෘදු ඇලාම් එක',
+          'sub': 'ස්වභාවික නාද ඇලාම්',
+          'cmd': 'ඇලාම් එක දාන්න',
+        },
+        {
+          'title': '🌡️ කාලගුණ ජල ඉලක්කය',
+          'sub': 'උෂ්ණත්වය හා ඉලක්කය',
+          'cmd': 'කාලගුණය අනුව වතුර',
+        },
+        {
+          'title': '💧 වතුර 250ml එකතු කරන්න',
+          'sub': 'වීදුරුවක්',
+          'cmd': 'Log 250ml water',
+        },
+        {
           'title': '💧 වතුර 500ml එකතු කරන්න',
           'sub': 'බෝතලයක්',
           'cmd': 'Log 500ml bottle of water',
@@ -73,6 +99,11 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
           'cmd': 'Start bedtime sleep mode',
         },
         {
+          'title': '🌬️ හුස්ම ගැනීමේ අභ්‍යාසය',
+          'sub': '4-7-8 සන්සුන් වන්න',
+          'cmd': 'Start breathing exercise',
+        },
+        {
           'title': '📊 අද ජල ප්‍රමාණය බලන්න',
           'sub': 'දෛනික ඉලක්කය',
           'cmd': 'Check today water status',
@@ -80,6 +111,21 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
       ];
     } else {
       return const [
+        {
+          'title': '💊 Took Pill (+250ml Water)',
+          'sub': 'Senior 1-tap combo',
+          'cmd': 'Took my medication pill',
+        },
+        {
+          'title': '🌅 Gentle Nature Alarm',
+          'sub': 'Wake-up settings',
+          'cmd': 'Set gentle wake up alarm',
+        },
+        {
+          'title': '🌡️ Weather Water Goal',
+          'sub': 'Heat adjustment',
+          'cmd': 'Check weather water goal',
+        },
         {
           'title': '💧 Log 250ml Water',
           'sub': 'One glass',
@@ -109,6 +155,11 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
           'title': '🌙 Bedtime Mode',
           'sub': '30-minute timer',
           'cmd': 'Start bedtime sleep mode',
+        },
+        {
+          'title': '🌬️ Breathing Exercise',
+          'sub': '4-7-8 Deep Sleep',
+          'cmd': 'Start breathing exercise',
         },
         {
           'title': '📊 Check Water Goal',
@@ -159,6 +210,9 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
     final hydrationNotifier = ref.read(hydrationProvider.notifier);
     final hydrationState = ref.read(hydrationProvider);
     final audioNotifier = ref.read(audioServiceProvider);
+    final medicationNotifier = ref.read(medicationProvider.notifier);
+    final medicationList = ref.read(medicationProvider);
+    final weatherModel = ref.read(weatherHydrationProvider);
 
     // Short delay for realistic speech interpretation
     await Future.delayed(const Duration(milliseconds: 350));
@@ -168,7 +222,45 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
       hydrationNotifier: hydrationNotifier,
       hydrationState: hydrationState,
       audioNotifier: audioNotifier,
+      medicationNotifier: medicationNotifier,
+      medicationList: medicationList,
+      weatherModel: weatherModel,
     );
+
+    if (result.actionType == VoiceActionType.breathingExercise) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        showBreathingExerciseModal(context);
+      }
+      return;
+    }
+
+    if (result.actionType == VoiceActionType.gentleAlarm) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        showGentleAlarmModal(context);
+      }
+      return;
+    }
+
+    if (result.actionType == VoiceActionType.medication &&
+        (rawText.toLowerCase().contains('schedule') ||
+            rawText.toLowerCase().contains('බලන්න') ||
+            rawText.toLowerCase().contains('කාලසටහන'))) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        showMedicationScheduleModal(context);
+      }
+      return;
+    }
+
+    if (result.actionType == VoiceActionType.weatherHydration && rawText.toLowerCase().contains('open')) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        showWeatherHydrationModal(context);
+      }
+      return;
+    }
 
     if (mounted) {
       setState(() {
