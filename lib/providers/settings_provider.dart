@@ -12,25 +12,31 @@ class SettingsState {
   final bool isOnboardingCompleted;
   final String lastUsedSoundId;
   final bool isDarkMode;
+  final String language; // 'en' or 'si'
 
   SettingsState({
     required this.textScaleFactor,
     required this.isOnboardingCompleted,
     required this.lastUsedSoundId,
     required this.isDarkMode,
+    this.language = 'en',
   });
+
+  bool get isSinhala => language == 'si';
 
   SettingsState copyWith({
     double? textScaleFactor,
     bool? isOnboardingCompleted,
     String? lastUsedSoundId,
     bool? isDarkMode,
+    String? language,
   }) {
     return SettingsState(
       textScaleFactor: textScaleFactor ?? this.textScaleFactor,
       isOnboardingCompleted: isOnboardingCompleted ?? this.isOnboardingCompleted,
       lastUsedSoundId: lastUsedSoundId ?? this.lastUsedSoundId,
       isDarkMode: isDarkMode ?? this.isDarkMode,
+      language: language ?? this.language,
     );
   }
 }
@@ -44,6 +50,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
           isOnboardingCompleted: _repository.isOnboardingCompleted(),
           lastUsedSoundId: _repository.getLastUsedSoundId(),
           isDarkMode: _repository.isDarkMode(),
+          language: _repository.getLanguage(),
         ));
 
   Future<void> setTextScaleFactor(double factor) async {
@@ -64,6 +71,11 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   Future<void> setDarkMode(bool isDark) async {
     await _repository.setDarkMode(isDark);
     state = state.copyWith(isDarkMode: isDark);
+  }
+
+  Future<void> setLanguage(String lang) async {
+    await _repository.setLanguage(lang);
+    state = state.copyWith(language: lang);
   }
 }
 

@@ -5,10 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/hydration_provider.dart';
 import 'providers/settings_provider.dart';
-import 'providers/auth_provider.dart';
-import 'screens/auth_screen.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/main_navigation_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -41,20 +38,8 @@ class AquaSootheApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authProvider);
     final settingsState = ref.watch(settingsProvider);
-
     final textScaleFactor = settingsState.textScaleFactor;
-    final isOnboardingCompleted = settingsState.isOnboardingCompleted;
-
-    Widget homeWidget;
-    if (user == null) {
-      homeWidget = const AuthScreen();
-    } else if (!isOnboardingCompleted) {
-      homeWidget = const OnboardingScreen();
-    } else {
-      homeWidget = const MainNavigationScreen();
-    }
 
     return MaterialApp(
       title: 'AquaSoothe',
@@ -62,7 +47,7 @@ class AquaSootheApp extends ConsumerWidget {
       theme: AppTheme.lightTheme(textScaleFactor),
       darkTheme: AppTheme.darkTheme(textScaleFactor),
       themeMode: settingsState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: homeWidget,
+      home: const SplashScreen(),
     );
   }
 }

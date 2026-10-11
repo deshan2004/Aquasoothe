@@ -5,6 +5,7 @@ class SettingsRepository {
   static const String _onboardingCompleteKey = 'aquasoothe_onboarding_done';
   static const String _lastUsedSoundKey = 'aquasoothe_last_sound';
   static const String _darkModeKey = 'aquasoothe_dark_mode';
+  static const String _languageKey = 'aquasoothe_language';
 
   final SharedPreferences _prefs;
 
@@ -40,5 +41,13 @@ class SettingsRepository {
 
   Future<void> setDarkMode(bool isDark) async {
     await _prefs.setBool(_darkModeKey, isDark);
+  }
+
+  String getLanguage() {
+    return _prefs.getString(_languageKey) ?? 'en';
+  }
+
+  Future<void> setLanguage(String lang) async {
+    await _prefs.setString(_languageKey, lang);
   }
 }

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/settings_provider.dart';
+import 'scale_button.dart';
+import 'voice_assistant_sheet.dart';
 
 /// Reusable AquaSoothe logo and brand title widget.
 class AquaSootheHeader extends StatelessWidget {
@@ -6,6 +10,8 @@ class AquaSootheHeader extends StatelessWidget {
   final double iconSize;
   final double fontSize;
   final bool showImageLogo;
+  final bool showVoiceButton;
+  final Widget? trailing;
 
   const AquaSootheHeader({
     super.key,
@@ -13,10 +19,15 @@ class AquaSootheHeader extends StatelessWidget {
     this.iconSize = 34,
     this.fontSize = 26,
     this.showImageLogo = true,
+    this.showVoiceButton = true,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? Colors.white : const Color(0xFF0C4648);
+
     final logoWidget = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -43,7 +54,7 @@ class AquaSootheHeader extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) => Icon(
                   Icons.waves_rounded,
                   size: iconSize,
-                  color: const Color(0xFF0C4648),
+                  color: primaryColor,
                 ),
               ),
             ),
@@ -52,7 +63,7 @@ class AquaSootheHeader extends StatelessWidget {
           Icon(
             Icons.waves_rounded,
             size: iconSize,
-            color: const Color(0xFF0C4648),
+            color: primaryColor,
           ),
         const SizedBox(width: 10),
         Text(
@@ -61,7 +72,7 @@ class AquaSootheHeader extends StatelessWidget {
             fontFamily: 'serif',
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF0C4648),
+            color: primaryColor,
             letterSpacing: -0.3,
           ),
         ),
@@ -71,7 +82,70 @@ class AquaSootheHeader extends StatelessWidget {
     if (isCentered) {
       return Center(child: logoWidget);
     }
+
+    final voiceAction = trailing ?? (showVoiceButton ? const VoiceAssistantHeaderButton() : null);
+
+    if (voiceAction != null) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          logoWidget,
+          voiceAction,
+        ],
+      );
+    }
+
     return logoWidget;
   }
 }
 
+/// Compact frosted glass Voice Assistant button for the app header
+class VoiceAssistantHeaderButton extends ConsumerWidget {
+  const VoiceAssistantHeaderButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTeal = const Color(0xFF0C4648);
+    final settingsState = ref.watch(settingsProvider);
+    final isSi = settingsState.isSinhala;
+
+    return ScaleButton(
+      onTap: () => showVoiceAssistantModal(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.18),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: primaryTeal.withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.mic_rounded, size: 18, color: isDark ? Colors.white : primaryTeal),
+            const SizedBox(width: 5),
+            Text(
+              isSi ? 'හඬ' : 'Voice',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : primaryTeal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

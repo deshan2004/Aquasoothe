@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -9,8 +10,89 @@ class AISoundGeneratorService {
   static const int sampleRate = 44100;
   static const double durationSeconds = 5.0; // 5-second seamless loop
 
-  /// Generates a custom soundscape .wav audio file based on ANY natural language text prompt
-  static Future<SoundTrack> generateSoundFromPrompt(String prompt) async {
+  /// Check if the custom AI server is accessible
+  static Future<bool> checkServerHealth(String serverUrl) async {
+    try {
+      final sanitizedUrl = serverUrl.trim().replaceAll(RegExp(r'/+$'), '');
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 4);
+      final request = await client.getUrl(Uri.parse('$sanitizedUrl/health'));
+      final response = await request.close().timeout(const Duration(seconds: 4));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Production Default Cloud AI Server URL
+  /// Normal users do not need to enter or copy-paste anything.
+  static const String defaultAiServerUrl = 'https://occurred-video-intensity-diving.trycloudflare.com';
+
+  /// Generates a custom soundscape .wav audio file based on natural language text prompt.
+  /// Automatically connects to the AI server without any user manual setup,
+  /// with seamless on-device offline fallback if offline or unreachable.
+  static Future<SoundTrack> generateSoundFromPrompt(
+    String prompt, {
+    String? customServerUrl,
+  }) async {
+    final serverUrl = (customServerUrl != null && customServerUrl.trim().isNotEmpty)
+        ? customServerUrl
+        : defaultAiServerUrl;
+
+    if (serverUrl.isNotEmpty) {
+      try {
+        final remoteTrack = await _generateFromRemoteAi(prompt, serverUrl);
+        if (remoteTrack != null) {
+          return remoteTrack;
+        }
+      } catch (e) {
+        debugPrint('AI Server generation fallback to local engine: $e');
+      }
+    }
+
+    return _generateLocalProceduralSound(prompt);
+  }
+
+  static Future<SoundTrack?> _generateFromRemoteAi(String prompt, String serverUrl) async {
+    final sanitizedUrl = serverUrl.trim().replaceAll(RegExp(r'/+$'), '');
+    final client = HttpClient();
+    client.connectionTimeout = const Duration(seconds: 15);
+    final request = await client.postUrl(Uri.parse('$sanitizedUrl/generate'));
+    request.headers.set('Content-Type', 'application/json');
+    request.add(utf8.encode(jsonEncode({
+      'prompt': prompt,
+      'duration': durationSeconds,
+    })));
+
+    final response = await request.close().timeout(const Duration(seconds: 45));
+    if (response.statusCode == 200) {
+      final bytesBuilder = BytesBuilder();
+      await for (final chunk in response) {
+        bytesBuilder.add(chunk);
+      }
+      final wavBytes = bytesBuilder.toBytes();
+
+      final appDir = await getApplicationDocumentsDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final file = File('${appDir.path}/ai_sound_$timestamp.wav');
+      await file.writeAsBytes(wavBytes);
+
+      final title = _generateTitleFromPrompt(prompt);
+      final cleanPrompt = prompt.toLowerCase().trim();
+
+      return SoundTrack(
+        id: 'ai_custom_neural_$timestamp',
+        title: title,
+        description: 'Neural Model AI: "$prompt"',
+        assetPath: file.path,
+        icon: _selectIconForPrompt(cleanPrompt),
+        category: 'AI Custom',
+      );
+    }
+    return null;
+  }
+
+  static Future<SoundTrack> _generateLocalProceduralSound(String prompt) async {
     final cleanPrompt = prompt.toLowerCase().trim();
     final numSamples = (sampleRate * durationSeconds).round();
 
@@ -166,21 +248,27 @@ class AISoundGeneratorService {
         }
       }
 
-      // 11. Fireplace Crackle
+      // 11. Realistic Campfire (Deep warm log hum + Poisson resonant crackle bursts)
       if (hasFire) {
-        double crackle = brownVal * 0.3;
-        if (random.nextDouble() < 0.0025) {
-          crackle += (random.nextDouble() * 0.5 - 0.25);
+        final emberHum = brownVal * 0.35 + math.sin(2 * math.pi * 75.0 * t) * 0.08;
+        double crackle = emberHum;
+        if (random.nextDouble() < 0.0035) {
+          final snapPitch = 700.0 + random.nextDouble() * 900.0;
+          final snapEnv = (random.nextDouble() * 0.45 + 0.15);
+          crackle += math.sin(2 * math.pi * snapPitch * t) * snapEnv;
         }
         mixedSample += crackle;
       }
 
-      // 12. Piano / Chimes / Bell / Bowl
+      // 12. Tibetan Singing Bowl / Solfeggio Meditation Bell (528Hz harmonic series + 2.5Hz binaural tremolo)
       if (hasChime) {
-        final chimeCycle = t % 2.5;
-        final decay = math.exp(-3.0 * chimeCycle);
+        final chimeCycle = t % 3.0;
+        final decay = math.exp(-1.5 * chimeCycle);
+        final tremolo = 0.75 + 0.25 * math.sin(2 * math.pi * 2.5 * t);
         final fundamental = math.sin(2 * math.pi * 528.0 * t);
-        mixedSample += fundamental * decay * 0.35;
+        final overtone1 = math.sin(2 * math.pi * 1457.0 * t) * 0.28;
+        final overtone2 = math.sin(2 * math.pi * 2851.0 * t) * 0.12;
+        mixedSample += (fundamental + overtone1 + overtone2) * decay * tremolo * 0.35;
       }
 
       // 13. Cat Purr
@@ -215,46 +303,59 @@ class AISoundGeneratorService {
         }
       }
 
-      // 17. Nature Sounds (Rain, Ocean, Crickets, Waterfall, Wind, Noise, Thunder)
+      // 17. Nature Sounds (Realistic Multi-Layer Organic Rain, Swell Ocean, Night Crickets, Wind, Thunder)
       if (hasRain) {
-        double rainDrop = pinkVal * 0.4;
-        if (random.nextDouble() < 0.0012) {
-          rainDrop += (random.nextDouble() * 0.25);
+        // Continuous soft mist bed + individual high-res surface droplet impacts
+        double rainDrop = pinkVal * 0.35;
+        if (random.nextDouble() < 0.0035) {
+          final dropFreq = 1600.0 + random.nextDouble() * 1800.0;
+          rainDrop += math.sin(2 * math.pi * dropFreq * t) * (0.15 + random.nextDouble() * 0.2);
         }
         mixedSample += rainDrop;
       }
 
       if (hasOcean) {
-        final oceanEnv = 0.2 + 0.8 * (0.5 + 0.5 * math.sin(2 * math.pi * 0.14 * t));
-        mixedSample += (pinkVal * 0.4 + brownVal * 0.3) * oceanEnv;
+        // Intersecting long swells with foam sizzle at wave crest
+        final swell1 = 0.5 + 0.5 * math.sin(2 * math.pi * 0.12 * t);
+        final swell2 = 0.5 + 0.5 * math.sin(2 * math.pi * 0.08 * t + 1.2);
+        final swellCombined = (swell1 * 0.7 + swell2 * 0.3);
+        final foam = (white * 0.18 + pinkVal * 0.25) * math.pow(swellCombined, 2.5);
+        final undertow = brownVal * swellCombined * 0.6;
+        mixedSample += (undertow + foam) * 0.85;
       }
 
       if (hasCrickets) {
-        final chirpCycle = t % 1.25;
+        final chirpCycle = t % 1.1;
         if (chirpCycle < 0.18) {
-          final pulse = math.sin(2 * math.pi * 38 * t);
-          final carrier = math.sin(2 * math.pi * 4400 * t);
-          mixedSample += 0.1 * pulse * carrier;
+          final pulse = math.sin(2 * math.pi * 45.0 * t);
+          final carrier = math.sin(2 * math.pi * 4600.0 * t);
+          mixedSample += 0.09 * pulse * carrier;
         }
       }
 
       if (hasWaterfall) {
-        mixedSample += (pinkVal * 0.3 + brownVal * 0.5);
+        final ripple = pinkVal * (0.35 + 0.15 * math.sin(2 * math.pi * 1.8 * t));
+        mixedSample += (ripple + brownVal * 0.45);
       }
 
       if (hasWind) {
-        final windEnv = 0.25 + 0.55 * (0.5 + 0.5 * math.sin(2 * math.pi * 0.18 * t));
-        mixedSample += pinkVal * windEnv * 0.35;
+        final gustLfo = 0.25 + 0.75 * math.pow(0.5 + 0.5 * math.sin(2 * math.pi * 0.15 * t), 2);
+        mixedSample += (pinkVal * 0.45 + brownVal * 0.2) * gustLfo;
       }
 
       if (hasPink) mixedSample += pinkVal * 0.5;
       if (hasBrown) mixedSample += brownVal * 0.6;
       if (hasThunder) {
-        final thunderCycle = t % 4.0;
-        if (thunderCycle < 0.8) {
-          mixedSample += brownVal * math.sin(math.pi * (thunderCycle / 0.8)) * 0.4;
+        final thunderCycle = t % 4.5;
+        if (thunderCycle < 1.4) {
+          final env = math.sin(math.pi * (thunderCycle / 1.4));
+          mixedSample += brownVal * (0.7 + 0.3 * math.sin(2 * math.pi * 42.0 * t)) * env * 0.55;
         }
       }
+
+      // Gentle Binaural Theta Wave (6Hz beat) for Deep Relaxation Sleep Induction
+      final thetaWave = (math.sin(2 * math.pi * 106.0 * t) - math.sin(2 * math.pi * 100.0 * t)) * 0.035;
+      mixedSample += thetaWave;
 
       // 18. Universal Hash Synthesizer Fallback (Guarantees distinct sound for ANY custom word!)
       final isAnyMatched = hasHorn || hasFire || hasChime || hasPurr || hasClock || hasTrain || hasBird ||
@@ -268,15 +369,20 @@ class AISoundGeneratorService {
         mixedSample += (wordTone1 + wordTone2 + pinkVal * 0.25 + brownVal * 0.25) * rhythmMod;
       }
 
-      samples[i] = mixedSample.clamp(-1.0, 1.0);
+      // Analog Soft-Clipping Saturation Curve (tanh curve prevents digital clipping)
+      final x = mixedSample * 0.85;
+      samples[i] = (x / (1.0 + x.abs())).clamp(-0.95, 0.95);
     }
 
-    // Apply seamless 50ms loop crossfade
-    final fadeSamples = (sampleRate * 0.05).round();
+    // Apply seamless 100ms smooth cosine crossfade
+    final fadeSamples = (sampleRate * 0.10).round();
     final loopedSamples = Float32List.fromList(samples);
     for (int i = 0; i < fadeSamples; i++) {
       final alpha = i / fadeSamples.toDouble();
-      loopedSamples[i] = (1 - alpha) * samples[numSamples - fadeSamples + i] + alpha * samples[i];
+      final cosWeight = (1.0 - math.cos(math.pi * alpha)) / 2.0;
+      final head = samples[i];
+      final tail = samples[numSamples - fadeSamples + i];
+      loopedSamples[i] = tail * (1.0 - cosWeight) + head * cosWeight;
     }
 
     // Encode to WAV bytes
