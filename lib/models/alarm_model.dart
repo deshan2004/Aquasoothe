@@ -5,6 +5,7 @@ class AlarmModel {
   final String soundId;
   final int fadeInMinutes;
   final String label;
+  final bool isRinging;
 
   const AlarmModel({
     this.isEnabled = false,
@@ -13,6 +14,7 @@ class AlarmModel {
     this.soundId = 'rainfall',
     this.fadeInMinutes = 5,
     this.label = 'Gentle Nature Wake-up',
+    this.isRinging = false,
   });
 
   String get formattedTime {
@@ -53,6 +55,7 @@ class AlarmModel {
     String? soundId,
     int? fadeInMinutes,
     String? label,
+    bool? isRinging,
   }) {
     return AlarmModel(
       isEnabled: isEnabled ?? this.isEnabled,
@@ -61,6 +64,7 @@ class AlarmModel {
       soundId: soundId ?? this.soundId,
       fadeInMinutes: fadeInMinutes ?? this.fadeInMinutes,
       label: label ?? this.label,
+      isRinging: isRinging ?? this.isRinging,
     );
   }
 

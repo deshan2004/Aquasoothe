@@ -137,6 +137,17 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
 
     try {
       final isSi = ref.read(settingsProvider).isSinhala;
+      String? targetLocale;
+      if (isSi) {
+        try {
+          final locales = await _speech.locales();
+          final hasSinhala = locales.any((l) => l.localeId.toLowerCase().startsWith('si'));
+          if (hasSinhala) {
+            targetLocale = 'si_LK';
+          }
+        } catch (_) {}
+      }
+
       await _speech.listen(
         onResult: (result) {
           if (!mounted) return;
@@ -151,10 +162,11 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
           }
         },
         listenOptions: stt.SpeechListenOptions(
-          listenMode: stt.ListenMode.confirmation,
+          listenMode: stt.ListenMode.dictation,
           cancelOnError: false,
           partialResults: true,
-          localeId: isSi ? 'si_LK' : null,
+          onDevice: false,
+          localeId: targetLocale,
         ),
       );
     } catch (e) {
@@ -416,115 +428,133 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
 
                     const SizedBox(height: 28),
 
-                    // Ultra-Modern Frosted Glass Glowing Microphone
+                    // Ultra-Modern Frosted Glass Glowing Microphone (Fixed dimensions to prevent any shaking/jitter)
                     GestureDetector(
                       onTap: _toggleListening,
-                      child: AnimatedBuilder(
-                        animation: _pulseController,
-                        builder: (context, child) {
-                          final scale = _isListening
-                              ? 1.0 + (_pulseController.value * 0.12)
-                              : 1.0;
-                          final ringOpacity = _isListening
-                              ? (0.35 - (_pulseController.value * 0.22)).clamp(0.08, 0.4)
-                              : 0.0;
+                      child: SizedBox(
+                        width: 140,
+                        height: 140,
+                        child: AnimatedBuilder(
+                          animation: _pulseController,
+                          builder: (context, child) {
+                            final scale = _isListening
+                                ? 1.0 + (_pulseController.value * 0.10)
+                                : 1.0;
+                            final ringOpacity = _isListening
+                                ? (0.35 - (_pulseController.value * 0.22)).clamp(0.08, 0.4)
+                                : 0.0;
 
-                          return Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Outer Glass Aura Ring
-                              if (_isListening)
-                                Container(
-                                  width: 136 * scale,
-                                  height: 136 * scale,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: coral.withValues(alpha: ringOpacity),
-                                  ),
-                                ),
-                              // Middle Glass Aura Ring
-                              if (_isListening)
-                                Container(
-                                  width: 112 * scale,
-                                  height: 112 * scale,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: glowTeal.withValues(alpha: ringOpacity + 0.1),
-                                  ),
-                                ),
-
-                              // Center Glass Orb
-                              Container(
-                                width: 88,
-                                height: 88,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: _isListening
-                                        ? [
-                                            const Color(0xFF1E676B),
-                                            const Color(0xFF0C4648),
-                                          ]
-                                        : [
-                                            glowTeal.withValues(alpha: 0.85),
-                                            const Color(0xFF0C4648),
-                                          ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.6),
-                                    width: 2,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: glowTeal.withValues(alpha: _isListening ? 0.5 : 0.28),
-                                      blurRadius: 26,
-                                      offset: const Offset(0, 8),
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Outer Glass Aura Ring
+                                if (_isListening)
+                                  Transform.scale(
+                                    scale: scale,
+                                    child: Container(
+                                      width: 130,
+                                      height: 130,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: coral.withValues(alpha: ringOpacity),
+                                      ),
                                     ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                                    size: 40,
-                                    color: Colors.white,
+                                  ),
+                                // Middle Glass Aura Ring
+                                if (_isListening)
+                                  Transform.scale(
+                                    scale: 1.0 + ((scale - 1.0) * 0.65),
+                                    child: Container(
+                                      width: 108,
+                                      height: 108,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: glowTeal.withValues(alpha: ringOpacity + 0.1),
+                                      ),
+                                    ),
+                                  ),
+
+                                // Center Glass Orb
+                                Container(
+                                  width: 86,
+                                  height: 86,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: _isListening
+                                          ? [
+                                              const Color(0xFF1E676B),
+                                              const Color(0xFF0C4648),
+                                            ]
+                                          : [
+                                              glowTeal.withValues(alpha: 0.85),
+                                              const Color(0xFF0C4648),
+                                            ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: glowTeal.withValues(alpha: _isListening ? 0.5 : 0.28),
+                                        blurRadius: 26,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                                      size: 40,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 14),
 
-                    // Animated Soundwave Indicator when listening
-                    if (_isListening) ...[
-                      AnimatedBuilder(
-                        animation: _waveController,
-                        builder: (context, child) {
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(5, (index) {
-                              final wavePhase = (_waveController.value + (index * 0.2)) % 1.0;
-                              final height = 8.0 + (wavePhase * 16.0);
-                              return Container(
-                                width: 3.5,
-                                height: height,
-                                margin: const EdgeInsets.symmetric(horizontal: 2.5),
-                                decoration: BoxDecoration(
-                                  color: glowTeal,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              );
-                            }),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                    ],
+                    // Stable Animated Soundwave Indicator (Fixed height to prevent layout shifts)
+                    SizedBox(
+                      height: 24,
+                      child: _isListening
+                          ? Center(
+                              child: AnimatedBuilder(
+                                animation: _waveController,
+                                builder: (context, child) {
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: List.generate(5, (index) {
+                                      final wavePhase = (_waveController.value + (index * 0.2)) % 1.0;
+                                      final height = 6.0 + (wavePhase * 14.0);
+                                      return Container(
+                                        width: 3.5,
+                                        height: height,
+                                        margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                                        decoration: BoxDecoration(
+                                          color: glowTeal,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                      );
+                                    }),
+                                  );
+                                },
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+
+                    const SizedBox(height: 8),
 
                     // Live Status Text
                     Text(

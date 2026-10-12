@@ -160,7 +160,7 @@ class GentleAlarmSheet extends ConsumerWidget {
                 // Luminous Glass Digital Clock Display
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
                   decoration: BoxDecoration(
                     color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(24),
@@ -194,7 +194,7 @@ class GentleAlarmSheet extends ConsumerWidget {
                                     initialTime: TimeOfDay(hour: alarm.hour, minute: alarm.minute),
                                   );
                                   if (picked != null) {
-                                    alarmNotifier.setTime(picked);
+                                    alarmNotifier.setTime(picked, isSinhala: isSi);
                                   }
                                 },
                                 child: Text(
@@ -210,33 +210,261 @@ class GentleAlarmSheet extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          Switch.adaptive(
-                            value: alarm.isEnabled,
-                            activeThumbColor: Colors.white,
-                            activeTrackColor: const Color(0xFF5ED1C7),
-                            inactiveThumbColor: Colors.white,
-                            inactiveTrackColor: const Color(0xFF32545A),
-                            onChanged: (val) {
-                              alarmNotifier.toggleEnabled(val);
-                              HapticFeedback.selectionClick();
-                            },
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Switch.adaptive(
+                                value: alarm.isEnabled,
+                                activeThumbColor: Colors.white,
+                                activeTrackColor: const Color(0xFF5ED1C7),
+                                inactiveThumbColor: Colors.white,
+                                inactiveTrackColor: const Color(0xFF32545A),
+                                onChanged: (val) {
+                                  alarmNotifier.toggleEnabled(val, isSinhala: isSi);
+                                  HapticFeedback.selectionClick();
+                                },
+                              ),
+                              Text(
+                                alarm.isEnabled ? (isSi ? 'සක්‍රියයි' : 'Active') : (isSi ? 'අක්‍රියයි' : 'Off'),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: alarm.isEnabled ? const Color(0xFF5ED1C7) : (isDark ? Colors.white38 : Colors.black38),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          Icon(Icons.touch_app_rounded, size: 14, color: isDark ? Colors.white54 : const Color(0xFF5A7275)),
-                          const SizedBox(width: 4),
-                          Text(
-                            isSi ? 'වේලාව මත ටැප් කර වෙනස් කරන්න' : 'Tap time to adjust hours & minutes',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white54 : const Color(0xFF5A7275),
+                          Expanded(
+                            child: ScaleButton(
+                              onTap: () async {
+                                final picked = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay(hour: alarm.hour, minute: alarm.minute),
+                                );
+                                if (picked != null) {
+                                  alarmNotifier.setTime(picked, isSinhala: isSi);
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.15),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.edit_calendar_rounded, size: 14, color: isDark ? const Color(0xFF5ED1C7) : primaryTeal),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      isSi ? 'වේලාව වෙනස් කරන්න (Change Time)' : 'Change Alarm Time',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? const Color(0xFF5ED1C7) : primaryTeal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      // Quick Common Time Preset Pills
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            const TimeOfDay(hour: 5, minute: 30),
+                            const TimeOfDay(hour: 6, minute: 0),
+                            const TimeOfDay(hour: 6, minute: 30),
+                            const TimeOfDay(hour: 7, minute: 0),
+                            const TimeOfDay(hour: 7, minute: 30),
+                            const TimeOfDay(hour: 8, minute: 0),
+                          ].map((tod) {
+                            final period = tod.hour >= 12 ? 'PM' : 'AM';
+                            final h = tod.hour > 12 ? tod.hour - 12 : (tod.hour == 0 ? 12 : tod.hour);
+                            final m = tod.minute.toString().padLeft(2, '0');
+                            final label = '$h:$m $period';
+                            final isCur = alarm.hour == tod.hour && alarm.minute == tod.minute;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: ScaleButton(
+                                onTap: () => alarmNotifier.setTime(tod, isSinhala: isSi),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: isCur
+                                        ? (isDark ? const Color(0xFF5ED1C7) : primaryTeal)
+                                        : (isDark ? Colors.white.withValues(alpha: 0.05) : primaryTeal.withValues(alpha: 0.04)),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isCur ? const Color(0xFF5ED1C7) : (isDark ? Colors.white10 : primaryTeal.withValues(alpha: 0.1)),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    label,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: isCur ? FontWeight.bold : FontWeight.w500,
+                                      color: isCur ? (isDark ? const Color(0xFF0C1F23) : Colors.white) : (isDark ? Colors.white70 : primaryTeal),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+
+                      // If Alarm is Ringing: show urgent in-sheet banner with Turn Off button
+                      if (alarm.isRinging) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFE25C38), Color(0xFFC0392B)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFC0392B).withValues(alpha: 0.35),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  SoundVisualizerWidget(
+                                    isPlaying: true,
+                                    color: Colors.white,
+                                    barWidth: 3,
+                                    maxHeight: 16,
+                                    barCount: 3,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      isSi ? '🌅 ඇලාමය පසුබිමේ වාදනය වේ!' : '🌅 Alarm Ringing in Background!',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ScaleButton(
+                                      onTap: () => alarmNotifier.turnOffAlarm(audioNotifier),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 9),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            isSi ? 'ඇලාමය Off කරන්න (Turn Off)' : 'Turn Off Alarm (Off)',
+                                            style: const TextStyle(
+                                              color: Color(0xFFC0392B),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ScaleButton(
+                                    onTap: () => alarmNotifier.snoozeAlarm(minutes: 5, isSinhala: isSi, overrideNotifier: audioNotifier),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.25),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        isSi ? '5මි පසුව (Snooze)' : 'Snooze 5m',
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else if (alarm.isEnabled) ...[
+                        // When Alarm is Active: explicit Turn Off button
+                        const SizedBox(height: 14),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF5ED1C7).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFF5ED1C7).withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.check_circle_rounded, color: Color(0xFF5ED1C7), size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  isSi
+                                      ? 'පසුබිමේ සක්‍රියයි • නාදය: ${alarm.soundTitleSi}'
+                                      : 'Active in Background • Sound: ${alarm.soundTitleEn}',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white.withValues(alpha: 0.9) : primaryTeal,
+                                  ),
+                                ),
+                              ),
+                              ScaleButton(
+                                onTap: () => alarmNotifier.turnOffAlarm(audioNotifier),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    isSi ? 'Off කරන්න' : 'Turn Off',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFFFAE85),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -341,13 +569,13 @@ class GentleAlarmSheet extends ConsumerWidget {
 
                 const SizedBox(height: 24),
 
-                // Preview Progressive Fade-in Button
+                // Preview / Test Alarm Sound and Off Controls
                 ScaleButton(
                   onTap: () {
-                    if (alarmNotifier.isPreviewing) {
-                      alarmNotifier.stopPreview(audioNotifier);
+                    if (alarm.isRinging || alarmNotifier.isPreviewing) {
+                      alarmNotifier.turnOffAlarm(audioNotifier);
                     } else {
-                      alarmNotifier.startPreview(audioNotifier);
+                      alarmNotifier.triggerAlarm(audioNotifier);
                     }
                   },
                   child: Container(
@@ -355,8 +583,8 @@ class GentleAlarmSheet extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: alarmNotifier.isPreviewing
-                            ? [const Color(0xFFFFAE85), const Color(0xFFF89966)]
+                        colors: (alarm.isRinging || alarmNotifier.isPreviewing)
+                            ? [const Color(0xFFE25C38), const Color(0xFFC0392B)]
                             : [
                                 const Color(0xFF0C4648).withValues(alpha: 0.92),
                                 const Color(0xFF1E676B).withValues(alpha: 0.92),
@@ -371,7 +599,10 @@ class GentleAlarmSheet extends ConsumerWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: (alarmNotifier.isPreviewing ? const Color(0xFFF8AB80) : primaryTeal).withValues(alpha: 0.3),
+                          color: ((alarm.isRinging || alarmNotifier.isPreviewing)
+                                  ? const Color(0xFFC0392B)
+                                  : primaryTeal)
+                              .withValues(alpha: 0.35),
                           blurRadius: 14,
                           offset: const Offset(0, 5),
                         ),
@@ -380,28 +611,28 @@ class GentleAlarmSheet extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (alarmNotifier.isPreviewing) ...[
+                        if (alarm.isRinging || alarmNotifier.isPreviewing) ...[
                           SoundVisualizerWidget(
                             isPlaying: true,
-                            color: const Color(0xFF4D2411),
+                            color: Colors.white,
                             barWidth: 3,
                             maxHeight: 14,
                             barCount: 3,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            isSi ? 'නැවත්වීම' : 'Stop Preview',
+                            isSi ? '🔕 ඇලාම් නාදය නවත්වන්න (Off)' : '🔕 Stop Alarm Sound (Off)',
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF4D2411),
+                              color: Colors.white,
                             ),
                           ),
                         ] else ...[
-                          const Icon(Icons.volume_up_rounded, color: Colors.white, size: 20),
+                          const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            isSi ? 'ශබ්දය සෙමෙන් වැඩිවීම අත්හදා බලන්න' : 'Preview Gentle Fade-in',
+                            isSi ? '🔔 ඇලාම් නාදය සහ Off කිරීම අත්හදා බලන්න' : '🔔 Test Alarm Sound & Off Action',
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,

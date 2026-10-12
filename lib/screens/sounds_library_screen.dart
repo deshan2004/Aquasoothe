@@ -272,7 +272,7 @@ class SoundsLibraryScreen extends ConsumerWidget {
                             Icon(Icons.timer_outlined, color: textColor, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'Auto-Off Sleep Timer',
+                              isSi ? 'නින්දේ ටයිමරය (Auto-Off)' : 'Auto-Off Sleep Timer',
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor),
                             ),
                             const Spacer(),
@@ -280,10 +280,10 @@ class SoundsLibraryScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.1),
+                                  color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.15),
+                                    color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.25),
                                   ),
                                 ),
                                 child: Row(
@@ -300,47 +300,263 @@ class SoundsLibraryScreen extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        // Sleep Timer Presets
+
+                        // Direct Interactive Custom Time Box (Allows setting ANY custom time directly)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.18),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.12),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.tune_rounded, size: 16, color: textColor),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          isSi ? 'ඔබ කැමති වේලාවක් (Custom Time)' : 'Set Any Custom Duration',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: textColor,
+                                          ),
+                                        ),
+                                        Text(
+                                          isSi
+                                              ? 'විනාඩි ${audioNotifier.customTimerMinutes} කින් ශබ්දය ක්‍රමයෙන් නැවතේ'
+                                              : 'Audio fades off after ${audioNotifier.customTimerMinutes} minutes',
+                                          style: TextStyle(fontSize: 11, color: subtitleColor),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Time Picker Modal Button
+                                  ScaleButton(
+                                    onTap: () => _showCustomSleepTimerSheet(context, audioNotifier, isSi, isDark),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.25),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.edit_calendar_rounded, size: 13, color: textColor),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            isSi ? 'වේලාව තෝරන්න' : 'Pick Time',
+                                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textColor),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+
+                              // Interactive Live Slider on Card (5 to 180 Minutes)
+                              Row(
+                                children: [
+                                  Text(
+                                    '5m',
+                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: subtitleColor),
+                                  ),
+                                  Expanded(
+                                    child: SliderTheme(
+                                      data: SliderThemeData(
+                                        trackHeight: 4,
+                                        activeTrackColor: textColor,
+                                        inactiveTrackColor: textColor.withValues(alpha: 0.15),
+                                        thumbColor: textColor,
+                                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                                      ),
+                                      child: Slider(
+                                        value: audioNotifier.customTimerMinutes.toDouble().clamp(5.0, 180.0),
+                                        min: 5,
+                                        max: 180,
+                                        divisions: 35,
+                                        onChanged: (val) {
+                                          audioNotifier.setCustomMinutes(val.round());
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '180m',
+                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: subtitleColor),
+                                  ),
+                                ],
+                              ),
+
+                              // Quick Direct Minute Buttons Row
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [10, 20, 30, 45, 60, 90, 120].map((mins) {
+                                  final isCurrent = audioNotifier.selectedPreset == SleepTimerPreset.custom &&
+                                      audioNotifier.customTimerMinutes == mins;
+                                  return ScaleButton(
+                                    onTap: () {
+                                      audioNotifier.setCustomMinutes(mins);
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 150),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: isCurrent
+                                            ? textColor
+                                            : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.06),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: isCurrent
+                                              ? textColor
+                                              : (isDark ? Colors.white12 : const Color(0xFF0C4648)).withValues(alpha: 0.15),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        isSi ? '$mins මි' : '$mins m',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
+                                          color: isCurrent
+                                              ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
+                                              : textColor,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        // Sleep Timer Presets Row (Custom is placed FIRST for instant visibility!)
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: SleepTimerPreset.values.map((preset) {
-                              final isSelected = audioNotifier.selectedPreset == preset;
-                              return Padding(
+                            children: [
+                              // 1. Custom Button First
+                              Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: ScaleButton(
-                                  onTap: () {
-                                    audioNotifier.setTimerPreset(preset);
-                                  },
+                                  onTap: () => _showCustomSleepTimerSheet(context, audioNotifier, isSi, isDark),
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 180),
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                                     decoration: BoxDecoration(
-                                      color: isSelected
+                                      color: audioNotifier.selectedPreset == SleepTimerPreset.custom
                                           ? textColor
-                                          : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.06),
+                                          : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.08),
                                       borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
-                                        color: isSelected
+                                        color: audioNotifier.selectedPreset == SleepTimerPreset.custom
                                             ? textColor
-                                            : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.15),
-                                        width: 1.2,
+                                            : (isDark ? Colors.white24 : const Color(0xFF0C4648)).withValues(alpha: 0.25),
+                                        width: 1.3,
                                       ),
                                     ),
-                                    child: Text(
-                                      preset.label,
-                                      style: TextStyle(
-                                        color: isSelected
-                                            ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
-                                            : textColor,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time_filled_rounded,
+                                          size: 13,
+                                          color: audioNotifier.selectedPreset == SleepTimerPreset.custom
+                                              ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
+                                              : textColor,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          isSi
+                                              ? 'කැමති (${audioNotifier.customTimerMinutes}මි) ✏️'
+                                              : 'Custom (${audioNotifier.customTimerMinutes}m) ✏️',
+                                          style: TextStyle(
+                                            color: audioNotifier.selectedPreset == SleepTimerPreset.custom
+                                                ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
+                                                : textColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                              );
-                            }).toList(),
+                              ),
+
+                              // 2. Standard Presets (15m, 30m, 45m, 60m, All Night)
+                              ...[
+                                SleepTimerPreset.min15,
+                                SleepTimerPreset.min30,
+                                SleepTimerPreset.min45,
+                                SleepTimerPreset.min60,
+                                SleepTimerPreset.allNight,
+                              ].map((preset) {
+                                final isSelected = audioNotifier.selectedPreset == preset;
+                                final label = preset == SleepTimerPreset.allNight
+                                    ? (isSi ? 'මුළු රාත්‍රියම' : 'All Night')
+                                    : (isSi ? '${preset.minutes} මි' : '${preset.minutes}m');
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ScaleButton(
+                                    onTap: () {
+                                      audioNotifier.setTimerPreset(preset);
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 180),
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? textColor
+                                            : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.06),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? textColor
+                                              : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.15),
+                                          width: 1.2,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        label,
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
+                                              : textColor,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ],
                           ),
                         ),
                       ],
@@ -550,6 +766,332 @@ class SoundsLibraryScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showCustomSleepTimerSheet(
+    BuildContext context,
+    AudioServiceNotifier audioNotifier,
+    bool isSi,
+    bool isDark,
+  ) {
+    int currentMinutes = audioNotifier.customTimerMinutes;
+    const primaryTeal = Color(0xFF0C4648);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            final now = DateTime.now();
+            final endTime = now.add(Duration(minutes: currentMinutes));
+            final endHour = endTime.hour > 12 ? endTime.hour - 12 : (endTime.hour == 0 ? 12 : endTime.hour);
+            final endMin = endTime.minute.toString().padLeft(2, '0');
+            final endPeriod = endTime.hour >= 12 ? 'PM' : 'AM';
+            final formattedEndTime = '$endHour:$endMin $endPeriod';
+
+            return Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF13272C) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border.all(
+                  color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.15),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 30,
+                    offset: const Offset(0, -6),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 34),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF5ED1C7).withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.timer_outlined, color: isDark ? const Color(0xFF5ED1C7) : primaryTeal, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isSi ? 'නින්දේ ටයිමරය (කැමති වේලාවක්)' : 'Custom Sleep Timer',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : primaryTeal,
+                                ),
+                              ),
+                              Text(
+                                isSi ? 'ශබ්දය නැවතීමට කැමති කාලය තෝරන්න' : 'Choose how long audio plays before fading out',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white60 : const Color(0xFF5A7275),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+
+                    // Luminous Minutes Display Box
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                '$currentMinutes',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? const Color(0xFF5ED1C7) : primaryTeal,
+                                  fontFamily: 'serif',
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isSi ? 'විනාඩි' : 'Minutes',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white70 : const Color(0xFF5A7275),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF5ED1C7).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              isSi ? 'නැවතෙන වේලාව: $formattedEndTime' : 'Audio will stop at: $formattedEndTime',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? const Color(0xFF5ED1C7) : primaryTeal,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Slider for minutes
+                    SliderTheme(
+                      data: SliderThemeData(
+                        trackHeight: 6,
+                        activeTrackColor: isDark ? const Color(0xFF5ED1C7) : primaryTeal,
+                        inactiveTrackColor: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.15),
+                        thumbColor: isDark ? const Color(0xFF5ED1C7) : primaryTeal,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                      ),
+                      child: Slider(
+                        value: currentMinutes.toDouble().clamp(5.0, 180.0),
+                        min: 5,
+                        max: 180,
+                        divisions: 35,
+                        onChanged: (val) {
+                          setSheetState(() {
+                            currentMinutes = val.round();
+                          });
+                        },
+                      ),
+                    ),
+
+                    // Quick presets row
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [10, 20, 40, 60, 90, 120].map((mins) {
+                        final isCurrent = currentMinutes == mins;
+                        return ScaleButton(
+                          onTap: () {
+                            setSheetState(() {
+                              currentMinutes = mins;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isCurrent
+                                  ? (isDark ? const Color(0xFF5ED1C7) : primaryTeal)
+                                  : (isDark ? Colors.white.withValues(alpha: 0.08) : primaryTeal.withValues(alpha: 0.06)),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isCurrent
+                                    ? (isDark ? const Color(0xFF5ED1C7) : primaryTeal)
+                                    : (isDark ? Colors.white12 : primaryTeal.withValues(alpha: 0.12)),
+                              ),
+                            ),
+                            child: Text(
+                              isSi ? '$mins මි' : '$mins m',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
+                                color: isCurrent
+                                    ? (isDark ? const Color(0xFF0C1F23) : Colors.white)
+                                    : (isDark ? Colors.white70 : primaryTeal),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Exact Clock Time Picker Button
+                    ScaleButton(
+                      onTap: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay(hour: endTime.hour, minute: endTime.minute),
+                        );
+                        if (picked != null) {
+                          final pickedDateTime = DateTime(
+                            now.year,
+                            now.month,
+                            now.day,
+                            picked.hour,
+                            picked.minute,
+                          );
+                          var diff = pickedDateTime.difference(now).inMinutes;
+                          if (diff <= 0) {
+                            diff += 24 * 60; // Next day
+                          }
+                          setSheetState(() {
+                            currentMinutes = diff.clamp(1, 480);
+                          });
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.12),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.access_time_rounded, size: 16, color: isDark ? const Color(0xFF5ED1C7) : primaryTeal),
+                            const SizedBox(width: 8),
+                            Text(
+                              isSi ? 'නිශ්චිත ඔරලෝසු වේලාවක් තෝරන්න (Time Picker)' : 'Choose exact clock time (Time Picker)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? const Color(0xFF5ED1C7) : primaryTeal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Apply Button
+                    ScaleButton(
+                      onTap: () {
+                        audioNotifier.setCustomMinutes(currentMinutes);
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: primaryTeal,
+                            content: Text(
+                              isSi
+                                  ? 'සුව නින්දේ ටයිමරය විනාඩි $currentMinutes කට සකසන ලදී.'
+                                  : 'Sleep timer set for $currentMinutes minutes.',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0C4648), Color(0xFF1E676B)],
+                          ),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryTeal.withValues(alpha: 0.35),
+                              blurRadius: 14,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            isSi ? 'ටයිමරය සක්‍රිය කරන්න (Set Timer)' : 'Set Sleep Timer',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

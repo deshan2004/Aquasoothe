@@ -9,6 +9,7 @@ enum SleepTimerPreset {
   min30(30, '30 Minutes'),
   min45(45, '45 Minutes'),
   min60(60, '60 Minutes'),
+  custom(-1, 'Custom'),
   allNight(0, 'All Night (No Timer)');
 
   final int minutes;
@@ -30,6 +31,7 @@ class AudioServiceNotifier extends ChangeNotifier {
 
   bool _isMixerEnabled = false;
   SleepTimerPreset _selectedPreset = SleepTimerPreset.min30;
+  int _customTimerMinutes = 20;
   Timer? _countdownTimer;
   Timer? _fadeOutTimer;
   int _secondsRemaining = 0;
@@ -48,6 +50,7 @@ class AudioServiceNotifier extends ChangeNotifier {
   double get secondaryVolume => _secondaryVolume;
 
   SleepTimerPreset get selectedPreset => _selectedPreset;
+  int get customTimerMinutes => _customTimerMinutes;
   int get secondsRemaining => _secondsRemaining;
   bool get isFadingOut => _isFadingOut;
 
@@ -202,7 +205,20 @@ class AudioServiceNotifier extends ChangeNotifier {
     if (_isPlaying) {
       _startSleepTimer();
     } else {
-      _secondsRemaining = preset.minutes * 60;
+      final totalMins = preset == SleepTimerPreset.custom ? _customTimerMinutes : preset.minutes;
+      _secondsRemaining = totalMins > 0 ? totalMins * 60 : 0;
+    }
+    notifyListeners();
+  }
+
+  void setCustomMinutes(int minutes) {
+    if (minutes <= 0) return;
+    _customTimerMinutes = minutes;
+    _selectedPreset = SleepTimerPreset.custom;
+    if (_isPlaying) {
+      _startSleepTimer();
+    } else {
+      _secondsRemaining = minutes * 60;
     }
     notifyListeners();
   }
@@ -211,12 +227,16 @@ class AudioServiceNotifier extends ChangeNotifier {
     _cancelTimers();
     _isFadingOut = false;
 
-    if (_selectedPreset == SleepTimerPreset.allNight || _selectedPreset.minutes == 0) {
+    final totalMins = _selectedPreset == SleepTimerPreset.custom
+        ? _customTimerMinutes
+        : _selectedPreset.minutes;
+
+    if (_selectedPreset == SleepTimerPreset.allNight || totalMins <= 0) {
       _secondsRemaining = 0;
       return;
     }
 
-    _secondsRemaining = _selectedPreset.minutes * 60;
+    _secondsRemaining = totalMins * 60;
 
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {

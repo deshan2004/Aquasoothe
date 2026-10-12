@@ -283,7 +283,7 @@ class NotificationService {
       return;
     }
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       channelAlarm,
       'Wake-Up Nature Alarm',
       channelDescription: 'Gentle nature sound morning wake-up alarm',
@@ -292,12 +292,26 @@ class NotificationService {
       playSound: true,
       enableVibration: true,
       fullScreenIntent: true,
-      styleInformation: BigTextStyleInformation(''),
+      styleInformation: const BigTextStyleInformation(''),
+      actions: <AndroidNotificationAction>[
+        AndroidNotificationAction(
+          'action_alarm_off',
+          isSinhala ? 'ඇලාමය Off කරන්න' : 'Turn Off Alarm',
+          showsUserInterface: true,
+          cancelNotification: true,
+        ),
+        AndroidNotificationAction(
+          'action_alarm_snooze',
+          isSinhala ? 'විනාඩි 5ක් පසුව' : 'Snooze (5m)',
+          showsUserInterface: false,
+          cancelNotification: true,
+        ),
+      ],
     );
 
-    const NotificationDetails details = NotificationDetails(
+    final NotificationDetails details = NotificationDetails(
       android: androidDetails,
-      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
     );
 
     final scheduledTZ = _nextInstanceOfTime(alarm.hour, alarm.minute);

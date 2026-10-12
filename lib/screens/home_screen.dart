@@ -14,7 +14,6 @@ import '../providers/weather_hydration_provider.dart';
 import '../widgets/aquasoothe_header.dart';
 import '../widgets/scale_button.dart';
 import '../widgets/sound_visualizer_widget.dart';
-import '../widgets/water_wave_progress.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/breathing_exercise_sheet.dart';
 import '../widgets/medication_schedule_sheet.dart';
@@ -28,7 +27,6 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider);
-    final hydrationState = ref.watch(hydrationProvider);
     final audioNotifier = ref.watch(audioServiceProvider);
     final settingsState = ref.watch(settingsProvider);
     final medicationList = ref.watch(medicationProvider);
@@ -41,17 +39,6 @@ class HomeScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
     final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A);
-
-    final goal = hydrationState.goal;
-    final todayTotalMl = hydrationState.todayTotalMl;
-    final progress = hydrationState.todayProgress;
-    final unit = goal.preferredUnit;
-    final displayIntake = unit == 'ml'
-        ? '${todayTotalMl.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} ml'
-        : '${(todayTotalMl / 250).toStringAsFixed(1)} cups';
-    final displayGoal = unit == 'ml'
-        ? '${goal.dailyTargetMl.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} ml'
-        : '${goal.dailyTargetCups} cups';
 
     final lastSoundId = settingsState.lastUsedSoundId;
     final currentSound = SoundTrack.defaultTracks.firstWhere(
@@ -1053,121 +1040,6 @@ class HomeScreen extends ConsumerWidget {
                           ),
                           Icon(Icons.chevron_right_rounded, color: subtitleColor),
                         ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Fluid Wave Hydration Display Inside Glass Card
-                    GlassCard(
-                      borderRadius: 26,
-                      blur: 20,
-                      padding: const EdgeInsets.all(16),
-                      margin: EdgeInsets.zero,
-                      child: Center(
-                        child: WaterWaveProgress(
-                          progress: progress,
-                          height: 190,
-                          baseColor: isDark ? const Color(0xFF13272C).withValues(alpha: 0.7) : const Color(0xFFE8F6F4).withValues(alpha: 0.7),
-                          waveColor: isDark ? const Color(0xFF22525A).withValues(alpha: 0.85) : const Color(0xFFBDE4E1).withValues(alpha: 0.85),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                displayIntake,
-                                style: TextStyle(
-                                  fontFamily: 'serif',
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isSi ? 'අද බීපු ප්‍රමාණය' : 'logged today',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: textColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isSi ? 'ඉලක්කය: $displayGoal' : 'Goal: $displayGoal',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: subtitleColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // + Log Water Interactive Glass Gradient Button
-                    ScaleButton(
-                      onTap: () {
-                        ref.read(hydrationProvider.notifier).logWater(250);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              isSi ? 'වතුර 250ml එකතු කළා!' : 'Logged 250ml water!',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            backgroundColor: const Color(0xFF0C4648),
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                          child: Container(
-                            width: double.infinity,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFFAE85), Color(0xFFF89966)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.45),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFF8AB80).withValues(alpha: 0.4),
-                                  blurRadius: 14,
-                                  offset: const Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.add_rounded, size: 24, color: Color(0xFF4D2411)),
-                                const SizedBox(width: 8),
-                                Text(
-                                  isSi ? 'වතුර එකතු කරන්න' : 'Log Water',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF4D2411),
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
                       ),
                     ),
 
