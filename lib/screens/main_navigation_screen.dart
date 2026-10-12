@@ -5,7 +5,7 @@ import '../providers/settings_provider.dart';
 import 'home_screen.dart';
 import 'sounds_library_screen.dart';
 import 'hydration_screen.dart';
-import 'settings_screen.dart';
+import 'profile_screen.dart';
 import '../widgets/mini_audio_player_bar.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
@@ -24,7 +24,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     HomeScreen(),
     SoundsLibraryScreen(),
     HydrationScreen(),
-    SettingsScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -86,7 +86,7 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
                         _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, isSi ? 'මුල් පිටුව' : 'Home', isDark),
                         _buildNavItem(1, Icons.waves_outlined, Icons.waves_rounded, isSi ? 'ශබ්ද' : 'Sounds', isDark),
                         _buildNavItem(2, Icons.water_drop_outlined, Icons.water_drop_rounded, isSi ? 'ජලය' : 'Hydration', isDark),
-                        _buildNavItem(3, Icons.settings_outlined, Icons.settings_rounded, isSi ? 'සැකසුම්' : 'Settings', isDark),
+                        _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded, isSi ? 'පැතිකඩ' : 'Profile', isDark),
                       ],
                     ),
                   ),

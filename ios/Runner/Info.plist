@@ -4,6 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Aquasoothe uses speech recognition to process your voice commands.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Aquasoothe needs microphone access to listen to voice commands.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

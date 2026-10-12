@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../providers/audio_provider.dart';
 import '../providers/hydration_provider.dart';
 import '../providers/medication_provider.dart';
@@ -9,21 +10,21 @@ import '../providers/weather_hydration_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/voice_command_service.dart';
 import 'glass_card.dart';
-import 'scale_button.dart';
 import 'breathing_exercise_sheet.dart';
 import 'gentle_alarm_sheet.dart';
 import 'medication_schedule_sheet.dart';
 import 'weather_hydration_sheet.dart';
 
-/// Shows the interactive Voice Assistant Sheet from anywhere in the app.
+/// Shows the interactive Voice Assistant Sheet with full Glassmorphic design.
 void showVoiceAssistantModal(BuildContext context) {
   HapticFeedback.mediumImpact();
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withValues(alpha: 0.45),
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(36)),
     ),
     builder: (_) => const VoiceAssistantSheet(),
   );
@@ -37,174 +38,162 @@ class VoiceAssistantSheet extends ConsumerStatefulWidget {
 }
 
 class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
+    with TickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late AnimationController _waveController;
   final TextEditingController _textController = TextEditingController();
 
-  bool _isListening = true;
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _speechEnabled = false;
+  bool _isListening = false;
   bool _isProcessing = false;
+  String _currentWords = '';
   VoiceCommandResult? _lastResult;
-
-  List<Map<String, String>> _getQuickCommands(bool isSi) {
-    if (isSi) {
-      return const [
-        {
-          'title': '💧 වතුර 250ml එකතු කරන්න',
-          'sub': 'වීදුරුවක්',
-          'cmd': 'Log 250ml water',
-        },
-        {
-          'title': '💊 බෙහෙත් බිව්වා (වතුර 250ml)',
-          'sub': 'පෙති සහ වතුර ලොග් කිරීම',
-          'cmd': 'බෙහෙත් බිව්වා',
-        },
-        {
-          'title': '🌅 මෘදු ඇලාම් එක',
-          'sub': 'ස්වභාවික නාද ඇලාම්',
-          'cmd': 'ඇලාම් එක දාන්න',
-        },
-        {
-          'title': '🌡️ කාලගුණ ජල ඉලක්කය',
-          'sub': 'උෂ්ණත්වය හා ඉලක්කය',
-          'cmd': 'කාලගුණය අනුව වතුර',
-        },
-        {
-          'title': '💧 වතුර 250ml එකතු කරන්න',
-          'sub': 'වීදුරුවක්',
-          'cmd': 'Log 250ml water',
-        },
-        {
-          'title': '💧 වතුර 500ml එකතු කරන්න',
-          'sub': 'බෝතලයක්',
-          'cmd': 'Log 500ml bottle of water',
-        },
-        {
-          'title': '🌧️ වැසි නාදය වාදනය කරන්න',
-          'sub': 'සන්සුන් වැස්ස',
-          'cmd': 'Play soothing rainfall sound',
-        },
-        {
-          'title': '🌊 මුහුදු රළ වාදනය කරන්න',
-          'sub': 'මෘදු රළ නාදය',
-          'cmd': 'Play gentle ocean waves',
-        },
-        {
-          'title': '⏸️ ශබ්දය නවත්වන්න',
-          'sub': 'නිහඬ කරන්න',
-          'cmd': 'Stop audio playback',
-        },
-        {
-          'title': '🌙 නිදන මාදිලිය',
-          'sub': 'විනාඩි 30 ටයිමරය',
-          'cmd': 'Start bedtime sleep mode',
-        },
-        {
-          'title': '🌬️ හුස්ම ගැනීමේ අභ්‍යාසය',
-          'sub': '4-7-8 සන්සුන් වන්න',
-          'cmd': 'Start breathing exercise',
-        },
-        {
-          'title': '📊 අද ජල ප්‍රමාණය බලන්න',
-          'sub': 'දෛනික ඉලක්කය',
-          'cmd': 'Check today water status',
-        },
-      ];
-    } else {
-      return const [
-        {
-          'title': '💊 Took Pill (+250ml Water)',
-          'sub': 'Senior 1-tap combo',
-          'cmd': 'Took my medication pill',
-        },
-        {
-          'title': '🌅 Gentle Nature Alarm',
-          'sub': 'Wake-up settings',
-          'cmd': 'Set gentle wake up alarm',
-        },
-        {
-          'title': '🌡️ Weather Water Goal',
-          'sub': 'Heat adjustment',
-          'cmd': 'Check weather water goal',
-        },
-        {
-          'title': '💧 Log 250ml Water',
-          'sub': 'One glass',
-          'cmd': 'Log 250ml water',
-        },
-        {
-          'title': '💧 Log 500ml Bottle',
-          'sub': 'One bottle',
-          'cmd': 'Log 500ml bottle of water',
-        },
-        {
-          'title': '🌧️ Play Rain Sounds',
-          'sub': 'Soothing rainfall',
-          'cmd': 'Play soothing rainfall sound',
-        },
-        {
-          'title': '🌊 Play Ocean Waves',
-          'sub': 'Gentle waves',
-          'cmd': 'Play gentle ocean waves',
-        },
-        {
-          'title': '⏸️ Pause Audio',
-          'sub': 'Silence playback',
-          'cmd': 'Stop audio playback',
-        },
-        {
-          'title': '🌙 Bedtime Mode',
-          'sub': '30-minute timer',
-          'cmd': 'Start bedtime sleep mode',
-        },
-        {
-          'title': '🌬️ Breathing Exercise',
-          'sub': '4-7-8 Deep Sleep',
-          'cmd': 'Start breathing exercise',
-        },
-        {
-          'title': '📊 Check Water Goal',
-          'sub': 'Daily progress',
-          'cmd': 'Check today water status',
-        },
-      ];
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
+    _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1600),
     )..repeat(reverse: true);
+
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
+
+    _initSpeech();
   }
 
-  @override
-  void dispose() {
-    _animController.dispose();
-    _textController.dispose();
-    super.dispose();
+  Future<void> _initSpeech() async {
+    try {
+      final available = await _speech.initialize(
+        onError: (val) {
+          if (!mounted) return;
+          setState(() {
+            _isListening = false;
+          });
+        },
+        onStatus: (status) {
+          if (!mounted) return;
+          if (status == 'listening') {
+            setState(() => _isListening = true);
+          } else if (status == 'notListening' || status == 'done') {
+            setState(() => _isListening = false);
+            if (_currentWords.trim().isNotEmpty && !_isProcessing) {
+              _handleCommand(_currentWords);
+            }
+          }
+        },
+      );
+
+      if (mounted) {
+        setState(() {
+          _speechEnabled = available;
+        });
+        if (available) {
+          _startListening();
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _speechEnabled = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _startListening() async {
+    if (!_speechEnabled) {
+      await _initSpeech();
+      if (!_speechEnabled) {
+        if (mounted) {
+          setState(() => _isListening = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                ref.read(settingsProvider).isSinhala
+                    ? 'මයික්‍රෆෝනය සක්‍රිය කර ගැනීමට කරුණාකර App එක Stop කර නැවත run කරන්න.'
+                    : 'Please rebuild & run the app to activate the new microphone plugin.',
+              ),
+              duration: const Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    setState(() {
+      _isListening = true;
+      _currentWords = '';
+      _lastResult = null;
+    });
+
+    HapticFeedback.mediumImpact();
+
+    try {
+      final isSi = ref.read(settingsProvider).isSinhala;
+      await _speech.listen(
+        onResult: (result) {
+          if (!mounted) return;
+          setState(() {
+            _currentWords = result.recognizedWords;
+            _textController.text = result.recognizedWords;
+          });
+
+          if (result.finalResult && result.recognizedWords.trim().isNotEmpty) {
+            _stopListening();
+            _handleCommand(result.recognizedWords);
+          }
+        },
+        listenOptions: stt.SpeechListenOptions(
+          listenMode: stt.ListenMode.confirmation,
+          cancelOnError: false,
+          partialResults: true,
+          localeId: isSi ? 'si_LK' : null,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Speech error: $e');
+    }
+  }
+
+  Future<void> _stopListening() async {
+    if (_speechEnabled) {
+      try {
+        await _speech.stop();
+      } catch (_) {}
+    }
+
+    if (mounted) {
+      setState(() => _isListening = false);
+    }
   }
 
   void _toggleListening() {
-    setState(() {
-      _isListening = !_isListening;
-      if (_isListening) {
-        _lastResult = null;
-        _animController.repeat(reverse: true);
-      } else {
-        _animController.stop();
+    if (_isListening) {
+      _stopListening();
+      if (_currentWords.trim().isNotEmpty) {
+        _handleCommand(_currentWords);
       }
-    });
+    } else {
+      _startListening();
+    }
     HapticFeedback.selectionClick();
   }
 
   Future<void> _handleCommand(String rawText) async {
-    if (rawText.trim().isEmpty) return;
+    final text = rawText.trim();
+    if (text.isEmpty) return;
 
     setState(() {
       _isProcessing = true;
       _isListening = false;
+      _currentWords = text;
     });
 
     final hydrationNotifier = ref.read(hydrationProvider.notifier);
@@ -214,11 +203,10 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
     final medicationList = ref.read(medicationProvider);
     final weatherModel = ref.read(weatherHydrationProvider);
 
-    // Short delay for realistic speech interpretation
-    await Future.delayed(const Duration(milliseconds: 350));
+    await Future.delayed(const Duration(milliseconds: 320));
 
     final result = await VoiceCommandService.processCommand(
-      input: rawText,
+      input: text,
       hydrationNotifier: hydrationNotifier,
       hydrationState: hydrationState,
       audioNotifier: audioNotifier,
@@ -244,9 +232,9 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
     }
 
     if (result.actionType == VoiceActionType.medication &&
-        (rawText.toLowerCase().contains('schedule') ||
-            rawText.toLowerCase().contains('බලන්න') ||
-            rawText.toLowerCase().contains('කාලසටහන'))) {
+        (text.toLowerCase().contains('schedule') ||
+            text.toLowerCase().contains('බලන්න') ||
+            text.toLowerCase().contains('කාලසටහන'))) {
       if (mounted) {
         Navigator.of(context).pop();
         showMedicationScheduleModal(context);
@@ -254,7 +242,8 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
       return;
     }
 
-    if (result.actionType == VoiceActionType.weatherHydration && rawText.toLowerCase().contains('open')) {
+    if (result.actionType == VoiceActionType.weatherHydration &&
+        text.toLowerCase().contains('open')) {
       if (mounted) {
         Navigator.of(context).pop();
         showWeatherHydrationModal(context);
@@ -266,9 +255,18 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
       setState(() {
         _isProcessing = false;
         _lastResult = result;
-        _textController.text = rawText;
+        _textController.text = text;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _speech.stop();
+    _pulseController.dispose();
+    _waveController.dispose();
+    _textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -277,330 +275,519 @@ class _VoiceAssistantSheetState extends ConsumerState<VoiceAssistantSheet>
     final isSi = settingsState.isSinhala;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryTeal = const Color(0xFF0C4648);
-    final coral = const Color(0xFFF8AB80);
+    final glowTeal = isDark ? const Color(0xFF5ED1C7) : const Color(0xFF1E676B);
+    const coral = Color(0xFFF8AB80);
+    final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
+    final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A);
+
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final quickCommands = _getQuickCommands(isSi);
 
     return Container(
       padding: EdgeInsets.only(bottom: bottomInset),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF13272C).withValues(alpha: 0.94) : Colors.white.withValues(alpha: 0.96),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        color: isDark
+            ? const Color(0xFF0F2024).withValues(alpha: 0.88)
+            : Colors.white.withValues(alpha: 0.86),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
         border: Border.all(
-          color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.7),
+          color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.75),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 36,
-            offset: const Offset(0, -10),
+            color: const Color(0xFF0C4648).withValues(alpha: 0.25),
+            blurRadius: 40,
+            offset: const Offset(0, -12),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(22, 16, 22, 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Top drag handle
-                Container(
-                  width: 44,
-                  height: 5,
+          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+          child: Stack(
+            children: [
+              // Subtle Atmospheric Glass Orbs
+              Positioned(
+                top: -30,
+                right: -20,
+                child: Container(
+                  width: 180,
+                  height: 180,
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
+                    shape: BoxShape.circle,
+                    color: glowTeal.withValues(alpha: isDark ? 0.18 : 0.15),
                   ),
                 ),
-                const SizedBox(height: 16),
+              ),
+              Positioned(
+                bottom: 40,
+                left: -30,
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: coral.withValues(alpha: isDark ? 0.12 : 0.16),
+                  ),
+                ),
+              ),
 
-                // Header Title with Close Button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 14, 22, 28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Top drag handle
+                    Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Header Title with Close Button (Fixed: No right overflow!)
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: primaryTeal.withValues(alpha: 0.12),
+                        // Left Icon & Title (Expanded to avoid any overflow)
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: glowTeal.withValues(alpha: 0.14),
+                                  border: Border.all(
+                                    color: glowTeal.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Icon(Icons.mic_rounded, size: 22, color: glowTeal),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isSi ? 'හඬ සහායක' : 'Voice Assistant',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      isSi ? 'කතා කර විධාන ලබා දෙන්න' : 'Speak or tap to control AquaSoothe',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: subtitleColor,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          child: Icon(Icons.mic_rounded, size: 22, color: isDark ? Colors.white : primaryTeal),
                         ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isSi ? 'හඬ සහායක' : 'Voice Assistant',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : primaryTeal,
-                              ),
-                            ),
-                            Text(
-                              isSi ? 'ඔබට අවශ්‍ය දේ කතා කර කියන්න' : 'Speak to log water or play sounds',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white70 : const Color(0xFF5A7275),
-                              ),
-                            ),
-                          ],
+                        // Close button
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            size: 24,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: Icon(Icons.close_rounded, color: isDark ? Colors.white70 : Colors.black54),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
 
-                const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
-                // Pulsing Interactive Microphone Bubble
-                GestureDetector(
-                  onTap: _toggleListening,
-                  child: AnimatedBuilder(
-                    animation: _animController,
-                    builder: (context, child) {
-                      final scale = _isListening ? 1.0 + (_animController.value * 0.12) : 1.0;
-                      final pulseOpacity = _isListening ? (0.28 - (_animController.value * 0.18)).clamp(0.05, 0.3) : 0.0;
+                    // Ultra-Modern Frosted Glass Glowing Microphone
+                    GestureDetector(
+                      onTap: _toggleListening,
+                      child: AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          final scale = _isListening
+                              ? 1.0 + (_pulseController.value * 0.12)
+                              : 1.0;
+                          final ringOpacity = _isListening
+                              ? (0.35 - (_pulseController.value * 0.22)).clamp(0.08, 0.4)
+                              : 0.0;
 
-                      return Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Outer ripple ring
-                          if (_isListening)
-                            Container(
-                              width: 110 * scale,
-                              height: 110 * scale,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: coral.withValues(alpha: pulseOpacity),
-                              ),
-                            ),
-                          // Middle ripple ring
-                          if (_isListening)
-                            Container(
-                              width: 95 * scale,
-                              height: 95 * scale,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: primaryTeal.withValues(alpha: pulseOpacity + 0.1),
-                              ),
-                            ),
-                          // Center Microphone Button
-                          Container(
-                            width: 76,
-                            height: 76,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: _isListening
-                                    ? [const Color(0xFF1E676B), const Color(0xFF0C4648)]
-                                    : [const Color(0xFF7A8E91), const Color(0xFF4A5C5E)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (_isListening ? const Color(0xFF0C4648) : Colors.black26).withValues(alpha: 0.35),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, 6),
+                          return Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Outer Glass Aura Ring
+                              if (_isListening)
+                                Container(
+                                  width: 136 * scale,
+                                  height: 136 * scale,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: coral.withValues(alpha: ringOpacity),
+                                  ),
                                 ),
-                              ],
-                            ),
-                            child: Icon(
-                              _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                              size: 38,
-                              color: Colors.white,
+                              // Middle Glass Aura Ring
+                              if (_isListening)
+                                Container(
+                                  width: 112 * scale,
+                                  height: 112 * scale,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: glowTeal.withValues(alpha: ringOpacity + 0.1),
+                                  ),
+                                ),
+
+                              // Center Glass Orb
+                              Container(
+                                width: 88,
+                                height: 88,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: _isListening
+                                        ? [
+                                            const Color(0xFF1E676B),
+                                            const Color(0xFF0C4648),
+                                          ]
+                                        : [
+                                            glowTeal.withValues(alpha: 0.85),
+                                            const Color(0xFF0C4648),
+                                          ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: glowTeal.withValues(alpha: _isListening ? 0.5 : 0.28),
+                                      blurRadius: 26,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Animated Soundwave Indicator when listening
+                    if (_isListening) ...[
+                      AnimatedBuilder(
+                        animation: _waveController,
+                        builder: (context, child) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(5, (index) {
+                              final wavePhase = (_waveController.value + (index * 0.2)) % 1.0;
+                              final height = 8.0 + (wavePhase * 16.0);
+                              return Container(
+                                width: 3.5,
+                                height: height,
+                                margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                                decoration: BoxDecoration(
+                                  color: glowTeal,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              );
+                            }),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+
+                    // Live Status Text
+                    Text(
+                      _isProcessing
+                          ? (isSi ? 'විධානය සකසමින් පවතී...' : 'Processing command...')
+                          : _isListening
+                              ? (isSi ? 'අසමින් පවතී... දැන් කතා කරන්න' : 'Listening... Speak now')
+                              : (isSi ? 'මයික්‍රෆෝනය ඔබා කතා කරන්න' : 'Tap microphone to speak'),
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    Text(
+                      _isListening
+                          ? (isSi ? 'පැහැදිලිව කතා කරන්න' : 'Speak clearly or tap a prompt below')
+                          : (isSi ? 'හෝ පහතින් කැමති විධානයක් තෝරන්න' : 'Or tap a quick command below'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: subtitleColor,
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Live Spoken Words Frosted Glass Card
+                    GlassCard(
+                      borderRadius: 20,
+                      blur: 16,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      margin: EdgeInsets.zero,
+                      borderColor: _isListening
+                          ? glowTeal.withValues(alpha: 0.45)
+                          : Colors.white.withValues(alpha: isDark ? 0.12 : 0.6),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _isListening ? Colors.redAccent : glowTeal,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isListening
+                                    ? (isSi ? 'හඬ හඳුනාගැනීම:' : 'Listening:')
+                                    : (isSi ? 'හඬ විධානය:' : 'Voice Query:'),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                  color: subtitleColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _currentWords.isNotEmpty
+                                ? '"$_currentWords"'
+                                : (_isListening
+                                    ? (isSi ? 'කතා කරන විට මෙහි දිස්වේ...' : 'Your speech appears here...')
+                                    : (isSi ? '"වතුර 250ml බිව්වා" හෝ "වැසි නාදය"' : '"Log 250ml water" or "Play rain"')),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: _currentWords.isNotEmpty ? 16 : 13,
+                              fontStyle: _currentWords.isNotEmpty ? FontStyle.normal : FontStyle.italic,
+                              fontWeight: _currentWords.isNotEmpty ? FontWeight.bold : FontWeight.normal,
+                              color: _currentWords.isNotEmpty
+                                  ? textColor
+                                  : (isDark ? Colors.white38 : Colors.black38),
                             ),
                           ),
                         ],
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 14),
-
-                // Status Text
-                Text(
-                  _isProcessing
-                      ? (isSi ? 'විධානය සකසමින් පවතී...' : 'Processing command...')
-                      : _isListening
-                          ? (isSi ? 'අසමින් පවතී... දැන් කතා කරන්න' : 'Listening... Speak now')
-                          : (isSi ? 'මයික්‍රෆෝනය ඔබා කතා කරන්න' : 'Tap microphone to speak'),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : primaryTeal,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _isListening
-                      ? (isSi ? '"වතුර 250ml බිව්වා" හෝ "වැසි නාදය" කියන්න' : 'Say e.g. "Log 250ml water" or "Play rain"')
-                      : (isSi ? 'හෝ පහතින් ඉක්මන් විධානයක් තෝරන්න' : 'Or choose a quick prompt below'),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.white70 : const Color(0xFF5A7275),
-                  ),
-                ),
-
-                const SizedBox(height: 18),
-
-                // Command Result Feedback Card (Single Language Only!)
-                if (_lastResult != null) ...[
-                  GlassCard(
-                    borderRadius: 18,
-                    blur: 16,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    margin: const EdgeInsets.only(bottom: 18),
-                    gradient: LinearGradient(
-                      colors: _lastResult!.success
-                          ? [
-                              const Color(0xFF0C4648).withValues(alpha: 0.9),
-                              const Color(0xFF1A585B).withValues(alpha: 0.9),
-                            ]
-                          : [
-                              const Color(0xFF8A3428).withValues(alpha: 0.9),
-                              const Color(0xFF6B2217).withValues(alpha: 0.9),
-                            ],
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _lastResult!.success ? Icons.check_circle_rounded : Icons.info_outline_rounded,
-                          size: 26,
-                          color: Colors.white,
+
+                    const SizedBox(height: 14),
+
+                    // Elegant Frosted Glass Voice Chips (Fast, clean 1-touch execution)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          _buildGlassChip(
+                            icon: '💧',
+                            label: isSi ? 'වතුර 250ml' : 'Log 250ml',
+                            command: 'Log 250ml water',
+                            glowTeal: glowTeal,
+                            isDark: isDark,
+                          ),
+                          _buildGlassChip(
+                            icon: '🌧️',
+                            label: isSi ? 'වැසි නාදය' : 'Play Rain',
+                            command: 'Play soothing rainfall sound',
+                            glowTeal: glowTeal,
+                            isDark: isDark,
+                          ),
+                          _buildGlassChip(
+                            icon: '🌊',
+                            label: isSi ? 'මුහුදු රළ' : 'Ocean Waves',
+                            command: 'Play gentle ocean waves',
+                            glowTeal: glowTeal,
+                            isDark: isDark,
+                          ),
+                          _buildGlassChip(
+                            icon: '🌙',
+                            label: isSi ? 'නිදන මාදිලිය' : 'Bedtime Mode',
+                            command: 'Start bedtime sleep mode',
+                            glowTeal: glowTeal,
+                            isDark: isDark,
+                          ),
+                          _buildGlassChip(
+                            icon: '💊',
+                            label: isSi ? 'බෙහෙත් බිව්වා' : 'Took Pill',
+                            command: 'Took my medication pill',
+                            glowTeal: glowTeal,
+                            isDark: isDark,
+                          ),
+                          _buildGlassChip(
+                            icon: '⏸️',
+                            label: isSi ? 'නවත්වන්න' : 'Stop Audio',
+                            command: 'Stop audio playback',
+                            glowTeal: glowTeal,
+                            isDark: isDark,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // Command Result Feedback Card
+                    if (_lastResult != null) ...[
+                      GlassCard(
+                        borderRadius: 18,
+                        blur: 16,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        margin: const EdgeInsets.only(bottom: 14),
+                        gradient: LinearGradient(
+                          colors: _lastResult!.success
+                              ? [
+                                  const Color(0xFF0C4648).withValues(alpha: 0.92),
+                                  const Color(0xFF1A585B).withValues(alpha: 0.92),
+                                ]
+                              : [
+                                  const Color(0xFF8A3428).withValues(alpha: 0.92),
+                                  const Color(0xFF6B2217).withValues(alpha: 0.92),
+                                ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            isSi ? _lastResult!.feedbackMessageSi : _lastResult!.feedbackMessageEn,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                        child: Row(
+                          children: [
+                            Icon(
+                              _lastResult!.success
+                                  ? Icons.check_circle_rounded
+                                  : Icons.info_outline_rounded,
+                              size: 24,
                               color: Colors.white,
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                // Quick Tap Commands for Seniors
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    isSi ? 'ඉක්මන් හඬ විධාන' : 'QUICK VOICE PROMPTS',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.8,
-                      color: isDark ? Colors.white60 : const Color(0xFF5A7275),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: quickCommands.map((cmd) {
-                    return ScaleButton(
-                      onTap: () => _handleCommand(cmd['cmd']!),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.16),
-                            width: 1.2,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              cmd['title']!,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : primaryTeal,
-                              ),
-                            ),
-                            Text(
-                              cmd['sub']!,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isDark ? Colors.white60 : const Color(0xFF5A7275),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                isSi
+                                    ? _lastResult!.feedbackMessageSi
+                                    : _lastResult!.feedbackMessageEn,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
+                    ],
 
-                const SizedBox(height: 18),
-
-                // Manual Input / Custom Voice Prompt Field
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.18),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _textController,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: isSi ? 'විධානයක් ටයිප් කරන්න හෝ කතා කරන්න...' : 'Type or speak a custom command...',
-                            hintStyle: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? Colors.white38 : Colors.black38,
+                    // Manual Text Field with Glass Styling
+                    GlassCard(
+                      borderRadius: 18,
+                      blur: 14,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                      margin: EdgeInsets.zero,
+                      borderColor: Colors.white.withValues(alpha: isDark ? 0.15 : 0.65),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _textController,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: textColor,
+                              ),
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: isSi
+                                    ? 'විධානයක් මෙහි ලියන්න...'
+                                    : 'Or type a command here...',
+                                hintStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: subtitleColor.withValues(alpha: 0.6),
+                                ),
+                              ),
+                              onSubmitted: (val) => _handleCommand(val),
                             ),
                           ),
-                          onSubmitted: (val) => _handleCommand(val),
-                        ),
+                          IconButton(
+                            icon: Icon(Icons.send_rounded, color: glowTeal, size: 20),
+                            onPressed: () => _handleCommand(_textController.text),
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: Icon(Icons.send_rounded, color: primaryTeal, size: 20),
-                        onPressed: () => _handleCommand(_textController.text),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassChip({
+    required String icon,
+    required String label,
+    required String command,
+    required Color glowTeal,
+    required bool isDark,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: GlassCard(
+        borderRadius: 14,
+        blur: 12,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: EdgeInsets.zero,
+        borderColor: glowTeal.withValues(alpha: 0.22),
+        onTap: () => _handleCommand(command),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648),
+              ),
+            ),
+          ],
         ),
       ),
     );
