@@ -7,13 +7,33 @@ Can be hosted for FREE on:
 """
 
 import io
-import torch
-from fastapi import FastAPI, HTTPException, Response
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import scipy.io.wavfile
+from contextlib import asynccontextmanager
+import torch  # type: ignore
+from fastapi import FastAPI, HTTPException, Response  # type: ignore
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore
+from pydantic import BaseModel  # type: ignore
+import scipy.io.wavfile  # type: ignore
+import numpy as np  # type: ignore
 
-app = FastAPI(title="Aquasoothe Sound Generation AI API", version="1.0.0")
+pipe = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global pipe
+    from diffusers import AudioLDMPipeline  # type: ignore
+    print("[+] Loading AudioLDM Pipeline into memory...")
+    device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+    dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+    pipe = AudioLDMPipeline.from_pretrained("cvssp/audioldm-s-full-v2", torch_dtype=dtype)
+    pipe = pipe.to(device)
+    print(f"[+] AudioLDM model successfully loaded on {device}!")
+    yield
+
+app = FastAPI(
+    title="Aquasoothe Sound Generation AI API",
+    version="1.0.0",
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,29 +43,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-pipe = None
-
-@app.on_event("startup")
-def load_model():
-    global pipe
-    from diffusers import AudioLDMPipeline
-    print("[+] Loading AudioLDM Pipeline into memory...")
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-    pipe = AudioLDMPipeline.from_pretrained("cvssp/audioldm-s-full-v2", torch_dtype=dtype)
-    pipe = pipe.to(device)
-    print(f"[+] AudioLDM model successfully loaded on {device}!")
-
 class GenerateRequest(BaseModel):
     prompt: str
     duration: float = 5.0
 
 @app.get("/health")
 def health_check():
+    device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
     return {
         "status": "healthy",
         "model_loaded": pipe is not None,
-        "device": "cuda" if torch.cuda.is_available() else "cpu"
+        "device": device,
     }
 
 @app.post("/generate")
@@ -69,6 +77,9 @@ def generate_audio(request: GenerateRequest):
         ).audios[0]
 
         # Convert to 16-bit PCM WAV in memory
+        if audio.dtype != np.int16:
+            audio = (np.clip(audio, -1.0, 1.0) * 32767).astype(np.int16)
+
         wav_buffer = io.BytesIO()
         scipy.io.wavfile.write(wav_buffer, rate=16000, data=audio)
         wav_bytes = wav_buffer.getvalue()
@@ -86,5 +97,5 @@ def generate_audio(request: GenerateRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    import uvicorn
+    import uvicorn  # type: ignore
     uvicorn.run("server_app:app", host="0.0.0.0", port=7860, reload=False)

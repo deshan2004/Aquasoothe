@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<double> _glowAnimation;
+
+  Timer? _navigationTimer;
 
   @override
   void initState() {
@@ -49,11 +52,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
 
     _fadeController.forward();
 
-    _navigateAfterDelay();
+    _navigationTimer = Timer(const Duration(milliseconds: 2400), () {
+      if (!mounted) return;
+      _navigateToTarget();
+    });
   }
 
-  Future<void> _navigateAfterDelay() async {
-    await Future.delayed(const Duration(milliseconds: 2400));
+  void _navigateToTarget() {
     if (!mounted) return;
 
     final user = ref.read(authProvider);
@@ -82,6 +87,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
 
   @override
   void dispose() {
+    _navigationTimer?.cancel();
     _pulseController.dispose();
     _fadeController.dispose();
     super.dispose();

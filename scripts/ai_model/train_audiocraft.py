@@ -8,9 +8,9 @@ Instructions for Google Colab:
 """
 
 import os
-import torch
-import torchaudio
-import soundfile as sf
+import torch  # type: ignore
+import torchaudio  # type: ignore
+import soundfile as sf  # type: ignore
 
 print("CUDA Available:", torch.cuda.is_available())
 if torch.cuda.is_available():
@@ -21,8 +21,8 @@ if torch.cuda.is_available():
 # -------------------------------------------------------------
 # !pip install -U "torch>=2.1.0" "torchaudio>=2.1.0" audiocraft soundfile
 
-from audiocraft.models import AudioGen, MusicGen
-from audiocraft.data.audio import audio_write
+from audiocraft.models import AudioGen, MusicGen  # type: ignore
+from audiocraft.data.audio import audio_write  # type: ignore
 
 # -------------------------------------------------------------
 # 2. Load Base Model (AudioGen or MusicGen-small)
