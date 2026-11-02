@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:audio_session/audio_session.dart';
 import '../models/sound_model.dart';
 
@@ -79,9 +80,52 @@ class AudioServiceNotifier extends ChangeNotifier {
 
   void _initPlayerListeners() {
     _player.playerStateStream.listen((state) {
+      final wasPlaying = _isPlaying;
       _isPlaying = state.playing;
+      if (wasPlaying && !_isPlaying) {
+        if (_secondaryPlayer.playing) {
+          _secondaryPlayer.pause();
+        }
+      } else if (!wasPlaying && _isPlaying) {
+        if (_isMixerEnabled && _secondaryTrack != null && !_secondaryPlayer.playing) {
+          _secondaryPlayer.play();
+        }
+      }
       notifyListeners();
     });
+  }
+
+  AudioSource _buildAudioSource(SoundTrack track) {
+    final mediaItem = MediaItem(
+      id: track.id,
+      album: 'AquaSoothe',
+      title: track.title,
+      artist: 'Nature Sound Therapy',
+      artUri: Uri.parse('asset:///assets/images/logo.png'),
+    );
+
+    if (track.assetPath.startsWith('assets/')) {
+      return AudioSource.asset(track.assetPath, tag: mediaItem);
+    } else {
+      return AudioSource.file(track.assetPath, tag: mediaItem);
+    }
+  }
+
+  Future<void> _setSourceForPlayer(SoundTrack track) async {
+    final source = _buildAudioSource(track);
+    await _player.setAudioSource(source);
+    await _player.setLoopMode(LoopMode.one);
+    await _player.setVolume(_volume);
+  }
+
+  Future<void> _setSecondarySource(SoundTrack track) async {
+    if (track.assetPath.startsWith('assets/')) {
+      await _secondaryPlayer.setAudioSource(AudioSource.asset(track.assetPath));
+    } else {
+      await _secondaryPlayer.setAudioSource(AudioSource.file(track.assetPath));
+    }
+    await _secondaryPlayer.setLoopMode(LoopMode.one);
+    await _secondaryPlayer.setVolume(_secondaryVolume);
   }
 
   Future<void> selectTrack(SoundTrack track) async {
@@ -90,15 +134,13 @@ class AudioServiceNotifier extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _player.setAsset(track.assetPath);
-      await _player.setLoopMode(LoopMode.one);
-      await _player.setVolume(_volume);
+      await _setSourceForPlayer(track);
 
       if (wasPlaying) {
         await play();
       }
     } catch (e) {
-      debugPrint("Error loading primary audio asset ${track.assetPath}: $e");
+      debugPrint("Error loading primary audio source ${track.assetPath}: $e");
     }
   }
 
@@ -112,15 +154,13 @@ class AudioServiceNotifier extends ChangeNotifier {
     }
 
     try {
-      await _secondaryPlayer.setAsset(track.assetPath);
-      await _secondaryPlayer.setLoopMode(LoopMode.one);
-      await _secondaryPlayer.setVolume(_secondaryVolume);
+      await _setSecondarySource(track);
 
       if (_isPlaying && _isMixerEnabled) {
         await _secondaryPlayer.play();
       }
     } catch (e) {
-      debugPrint("Error loading secondary audio asset ${track.assetPath}: $e");
+      debugPrint("Error loading secondary audio source ${track.assetPath}: $e");
     }
   }
 
@@ -131,8 +171,7 @@ class AudioServiceNotifier extends ChangeNotifier {
     } else if (_isPlaying && _secondaryTrack != null) {
       try {
         if (_secondaryPlayer.audioSource == null) {
-          await _secondaryPlayer.setAsset(_secondaryTrack!.assetPath);
-          await _secondaryPlayer.setLoopMode(LoopMode.one);
+          await _setSecondarySource(_secondaryTrack!);
         }
         await _secondaryPlayer.setVolume(_secondaryVolume);
         await _secondaryPlayer.play();
@@ -146,16 +185,14 @@ class AudioServiceNotifier extends ChangeNotifier {
   Future<void> play() async {
     try {
       if (_player.audioSource == null) {
-        await _player.setAsset(_currentTrack.assetPath);
-        await _player.setLoopMode(LoopMode.one);
+        await _setSourceForPlayer(_currentTrack);
       }
       await _player.setVolume(_volume);
       await _player.play();
 
       if (_isMixerEnabled && _secondaryTrack != null) {
         if (_secondaryPlayer.audioSource == null) {
-          await _secondaryPlayer.setAsset(_secondaryTrack!.assetPath);
-          await _secondaryPlayer.setLoopMode(LoopMode.one);
+          await _setSecondarySource(_secondaryTrack!);
         }
         await _secondaryPlayer.setVolume(_secondaryVolume);
         await _secondaryPlayer.play();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
 import 'providers/hydration_provider.dart';
@@ -11,6 +12,18 @@ import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize background audio service for lock screen and notification controls
+  try {
+    await JustAudioBackground.init(
+      androidNotificationChannelId: 'com.aquasoothe.audio',
+      androidNotificationChannelName: 'AquaSoothe Audio Playback',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+    );
+  } catch (e) {
+    debugPrint('JustAudioBackground init note: $e');
+  }
 
   // Initialize Firebase with project credentials
   try {

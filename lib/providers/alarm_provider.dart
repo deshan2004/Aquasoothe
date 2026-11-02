@@ -24,6 +24,7 @@ class AlarmNotifier extends StateNotifier<AlarmModel> {
   final AudioServiceNotifier _audioNotifier;
   Timer? _previewTimer;
   Timer? _clockTicker;
+  StreamSubscription? _notifActionSub;
   int? _lastRungMinute;
   bool _isPreviewing = false;
   double _previewVolume = 0.1;
@@ -34,6 +35,18 @@ class AlarmNotifier extends StateNotifier<AlarmModel> {
   AlarmNotifier(this._repository, this._audioNotifier) : super(_repository.getAlarm()) {
     NotificationService().scheduleGentleAlarm(state);
     _startClockTicker();
+    _listenToNotificationActions();
+  }
+
+  void _listenToNotificationActions() {
+    _notifActionSub?.cancel();
+    _notifActionSub = NotificationService.onNotificationResponseStream.stream.listen((response) {
+      if (response.actionId == 'action_alarm_off') {
+        turnOffAlarm();
+      } else if (response.actionId == 'action_alarm_snooze') {
+        snoozeAlarm();
+      }
+    });
   }
 
   void _startClockTicker() {
@@ -193,6 +206,7 @@ class AlarmNotifier extends StateNotifier<AlarmModel> {
 
   @override
   void dispose() {
+    _notifActionSub?.cancel();
     _clockTicker?.cancel();
     _previewTimer?.cancel();
     super.dispose();

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -13,6 +14,9 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
+
+  static final StreamController<NotificationResponse> onNotificationResponseStream =
+      StreamController<NotificationResponse>.broadcast();
 
   static const String channelMedication = 'aquasoothe_medication_channel';
   static const String channelHydration = 'aquasoothe_hydration_channel';
@@ -42,7 +46,8 @@ class NotificationService {
     await _notificationsPlugin.initialize(
       settings: settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        debugPrint('Notification tapped: ${response.payload}');
+        debugPrint('Notification tapped: ${response.payload}, action: ${response.actionId}');
+        onNotificationResponseStream.add(response);
       },
     );
 
@@ -277,12 +282,53 @@ class NotificationService {
     if (!_isInitialized) await init();
 
     const int alarmNotifId = 500;
+    const int upcomingAlarmNotifId = 501;
 
     if (!alarm.isEnabled) {
       await _notificationsPlugin.cancel(id: alarmNotifId);
+      await _notificationsPlugin.cancel(id: upcomingAlarmNotifId);
       return;
     }
 
+    final soundName = isSinhala ? alarm.soundTitleSi : alarm.soundTitleEn;
+
+    // 1. Show active status notification in notification drawer so user can verify it outside the app
+    final upcomingTitle = isSinhala
+        ? '⏰ ඇලාමය සක්‍රියයි (${alarm.formattedTime})'
+        : '⏰ Gentle Alarm Armed (${alarm.formattedTime})';
+    final upcomingBody = isSinhala
+        ? '$soundName නාදය සමග උදෑසන සෙමෙන් අවදි කරනු ඇත.'
+        : 'AquaSoothe will wake you gently at ${alarm.formattedTime} with $soundName.';
+
+    final AndroidNotificationDetails upcomingDetails = AndroidNotificationDetails(
+      channelAlarm,
+      'Wake-Up Nature Alarm',
+      channelDescription: 'Gentle nature sound morning wake-up alarm status',
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: false,
+      autoCancel: true,
+      styleInformation: BigTextStyleInformation(upcomingBody),
+    );
+
+    try {
+      await _notificationsPlugin.show(
+        id: upcomingAlarmNotifId,
+        title: upcomingTitle,
+        body: upcomingBody,
+        notificationDetails: NotificationDetails(
+          android: upcomingDetails,
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Notice showing upcoming alarm status: $e');
+    }
+
+    // 2. Schedule the high-priority alarm notification at the exact wake-up time
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       channelAlarm,
       'Wake-Up Nature Alarm',
@@ -292,6 +338,7 @@ class NotificationService {
       playSound: true,
       enableVibration: true,
       fullScreenIntent: true,
+      category: AndroidNotificationCategory.alarm,
       styleInformation: const BigTextStyleInformation(''),
       actions: <AndroidNotificationAction>[
         AndroidNotificationAction(
@@ -318,7 +365,6 @@ class NotificationService {
     final title = isSinhala
         ? '🌅 සුබ උදෑසනක් - ස්වභාවික අවදිවීම'
         : '🌅 Good Morning - Gentle Nature Wake-Up';
-    final soundName = isSinhala ? alarm.soundTitleSi : alarm.soundTitleEn;
     final body = isSinhala
         ? 'නියමිත වේලාවයි! $soundName නාදයෙන් දවස සන්සුන්ව අරඹන්න.'
         : 'It is wake-up time! Rise gently with $soundName.';
