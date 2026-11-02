@@ -13,6 +13,18 @@
 		<string>audio</string>
 	</array>
 
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.1054170301134-s4v24lhaot063776f0gtjbt3ssmai36d</string>
+			</array>
+		</dict>
+	</array>
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

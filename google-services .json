@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1054170301134",
+    "project_id": "aquasoothe-ca290",
+    "storage_bucket": "aquasoothe-ca290.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054170301134:android:4bc59461ff2d59554cc69f",
+        "android_client_info": {
+          "package_name": "com.aquasoothe.aquasoothe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1054170301134-n4pp7tnra7eqcnpan5dqeukgf1t0ogkr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aquasoothe.aquasoothe",
+            "certificate_hash": "a0ca49a9e4636333308a42a5031f47b0647bca4f"
+          }
+        },
+        {
+          "client_id": "1054170301134-grf2mqogvm55nukb9ur4oae0qed0v1v2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwN2HZ8L0pT0t0hpifLt64FShXz2NUjiE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1054170301134-grf2mqogvm55nukb9ur4oae0qed0v1v2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1054170301134-s4v24lhaot063776f0gtjbt3ssmai36d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.aquasoothe.aquasoothe"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -3,6 +3,7 @@ class UserModel {
   final String name;
   final String email;
   final bool isGuest;
+  final String? gender;
   final DateTime createdAt;
 
   UserModel({
@@ -10,14 +11,34 @@ class UserModel {
     required this.name,
     required this.email,
     this.isGuest = false,
+    this.gender,
     required this.createdAt,
   });
+
+  UserModel copyWith({
+    String? id,
+    String? name,
+    String? email,
+    bool? isGuest,
+    String? gender,
+    DateTime? createdAt,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      isGuest: isGuest ?? this.isGuest,
+      gender: gender ?? this.gender,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
         'email': email,
         'isGuest': isGuest,
+        'gender': gender,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -39,6 +60,7 @@ class UserModel {
       name: (json['name'] ?? 'User') as String,
       email: (json['email'] ?? '') as String,
       isGuest: json['isGuest'] as bool? ?? false,
+      gender: json['gender'] as String?,
       createdAt: parseDate(json['createdAt']),
     );
   }

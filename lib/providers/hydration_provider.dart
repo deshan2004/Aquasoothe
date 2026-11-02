@@ -4,13 +4,18 @@ import '../models/hydration_model.dart';
 import '../repositories/hydration_repository.dart';
 import '../services/notification_service.dart';
 
+import '../core/utils/user_scope.dart';
+import 'auth_provider.dart';
+
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('SharedPreferences must be initialized in main()');
 });
 
 final hydrationRepositoryProvider = Provider<HydrationRepository>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  return HydrationRepository(prefs);
+  final user = ref.watch(authProvider);
+  final userKey = UserScope.getKey(user);
+  return HydrationRepository(prefs, userKey: userKey);
 });
 
 class HydrationState {

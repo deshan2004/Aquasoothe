@@ -5,12 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/sleep_journal_model.dart';
 
 class SleepJournalRepository {
-  static const String _sleepLogsKey = 'aquasoothe_sleep_journal_logs_v1';
   final SharedPreferences _prefs;
+  final String _userKey;
+
   fb_auth.FirebaseAuth get _firebaseAuth => fb_auth.FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
-  SleepJournalRepository(this._prefs);
+  SleepJournalRepository(this._prefs, {this._userKey = 'guest_'});
+
+  String get _sleepLogsKey => '${_userKey}sleep_journal_logs_v1';
 
   List<SleepLog> getLogs() {
     final rawJson = _prefs.getString(_sleepLogsKey);

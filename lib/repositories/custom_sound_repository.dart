@@ -1,13 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/sound_model.dart';
 
 class CustomSoundRepository {
-  static const String _customSoundsKey = 'aquasoothe_custom_ai_sounds_v1';
   final SharedPreferences _prefs;
+  final String _userKey;
 
-  CustomSoundRepository(this._prefs);
+  fb_auth.FirebaseAuth get _firebaseAuth => fb_auth.FirebaseAuth.instance;
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+
+  CustomSoundRepository(this._prefs, {this._userKey = 'guest_'});
+
+  String get _customSoundsKey => '${_userKey}custom_ai_sounds_v1';
 
   List<SoundTrack> getCustomSounds() {
     final rawJson = _prefs.getString(_customSoundsKey);
@@ -44,6 +51,27 @@ class CustomSoundRepository {
         }).toList();
 
     await _prefs.setString(_customSoundsKey, jsonEncode(jsonList));
+
+    // Sync with Firestore if user is authenticated
+    try {
+      final uid = _firebaseAuth.currentUser?.uid;
+      if (uid != null && uid.isNotEmpty) {
+        await _firestore
+            .collection('users')
+            .doc(uid)
+            .collection('custom_sounds')
+            .doc(sound.id)
+            .set({
+              'id': sound.id,
+              'title': sound.title,
+              'description': sound.description,
+              'assetPath': sound.assetPath,
+              'iconCode': sound.icon.codePoint,
+              'category': sound.category,
+              'createdAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+      }
+    } catch (_) {}
   }
 
   Future<void> deleteCustomSound(String id) async {

@@ -165,7 +165,46 @@ class WeatherHydrationSheet extends ConsumerWidget {
                   ],
                 ),
 
-                const SizedBox(height: 20),
+                // Live Location Auto-Tracker Button
+                ScaleButton(
+                  onTap: () async {
+                    HapticFeedback.selectionClick();
+                    await weatherNotifier.autoDetectLocationAndWeather();
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          heatOrange.withValues(alpha: isDark ? 0.25 : 0.15),
+                          coral.withValues(alpha: isDark ? 0.15 : 0.08),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: heatOrange.withValues(alpha: 0.4),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.my_location_rounded, size: 16, color: heatOrange),
+                        const SizedBox(width: 8),
+                        Text(
+                          isSi ? 'මගේ සජීවී ස්ථානය සහ කාලගුණය Track කරන්න' : 'Track My Live Location & Weather',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : primaryTeal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
                 // Main Weather & Dynamic Goal Hero Glass Card
                 GlassCard(
@@ -450,7 +489,7 @@ class WeatherHydrationSheet extends ConsumerWidget {
 
                 // Sri Lankan Climate Presets for Elderly One-Touch Selection
                 Text(
-                  isSi ? 'ප්‍රදේශයේ කාලගුණය තෝරන්න' : 'Select Local Climate Preset',
+                  isSi ? 'නගරය අනුව කාලගුණය (Live Weather)' : 'Select City for Live Weather',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -459,64 +498,60 @@ class WeatherHydrationSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 10),
 
-                Row(
-                  children: [
-                    _PresetButton(
-                      title: isSi ? 'නුවරඑළිය' : 'Nuwara Eliya',
-                      temp: '22°C',
-                      icon: Icons.ac_unit_rounded,
-                      isActive: weatherState.temperatureCelsius <= 24,
-                      onTap: () {
-                        weatherNotifier.setPresetLocation(
-                          locationName: isSi ? 'නුවරඑළිය, ශ්‍රී ලංකාව' : 'Nuwara Eliya, Sri Lanka',
-                          temp: 22.0,
-                          humidity: 85,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    _PresetButton(
-                      title: isSi ? 'කොළඹ' : 'Colombo',
-                      temp: '30°C',
-                      icon: Icons.wb_cloudy_rounded,
-                      isActive: weatherState.temperatureCelsius > 24 && weatherState.temperatureCelsius <= 31,
-                      onTap: () {
-                        weatherNotifier.setPresetLocation(
-                          locationName: isSi ? 'කොළඹ, ශ්‍රී ලංකාව' : 'Colombo, Sri Lanka',
-                          temp: 30.0,
-                          humidity: 78,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    _PresetButton(
-                      title: isSi ? 'අනුරාධපුරය' : 'Anuradhapura',
-                      temp: '34°C',
-                      icon: Icons.wb_sunny_rounded,
-                      isActive: weatherState.temperatureCelsius > 31 && weatherState.temperatureCelsius <= 35,
-                      onTap: () {
-                        weatherNotifier.setPresetLocation(
-                          locationName: isSi ? 'අනුරාධපුරය, ශ්‍රී ලංකාව' : 'Anuradhapura, Sri Lanka',
-                          temp: 34.0,
-                          humidity: 62,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    _PresetButton(
-                      title: isSi ? 'පොළොන්නරුව' : 'Heatwave',
-                      temp: '37°C',
-                      icon: Icons.local_fire_department_rounded,
-                      isActive: weatherState.temperatureCelsius > 35,
-                      onTap: () {
-                        weatherNotifier.setPresetLocation(
-                          locationName: isSi ? 'පොළොන්නරුව, ශ්‍රී ලංකාව' : 'Polonnaruwa, Sri Lanka',
-                          temp: 37.0,
-                          humidity: 55,
-                        );
-                      },
-                    ),
-                  ],
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: [
+                      _PresetButton(
+                        title: isSi ? 'නුවරඑළිය' : 'Nuwara Eliya',
+                        temp: 'Hill',
+                        icon: Icons.ac_unit_rounded,
+                        isActive: weatherState.locationName.contains('Nuwara Eliya'),
+                        onTap: () => weatherNotifier.setPresetCity('Nuwara Eliya'),
+                      ),
+                      const SizedBox(width: 8),
+                      _PresetButton(
+                        title: isSi ? 'කොළඹ' : 'Colombo',
+                        temp: 'Coast',
+                        icon: Icons.wb_cloudy_rounded,
+                        isActive: weatherState.locationName.contains('Colombo'),
+                        onTap: () => weatherNotifier.setPresetCity('Colombo'),
+                      ),
+                      const SizedBox(width: 8),
+                      _PresetButton(
+                        title: isSi ? 'මහනුවර' : 'Kandy',
+                        temp: 'Central',
+                        icon: Icons.park_rounded,
+                        isActive: weatherState.locationName.contains('Kandy'),
+                        onTap: () => weatherNotifier.setPresetCity('Kandy'),
+                      ),
+                      const SizedBox(width: 8),
+                      _PresetButton(
+                        title: isSi ? 'ගාල්ල' : 'Galle',
+                        temp: 'South',
+                        icon: Icons.waves_rounded,
+                        isActive: weatherState.locationName.contains('Galle'),
+                        onTap: () => weatherNotifier.setPresetCity('Galle'),
+                      ),
+                      const SizedBox(width: 8),
+                      _PresetButton(
+                        title: isSi ? 'අනුරාධපුරය' : 'Anuradhapura',
+                        temp: 'Dry Zone',
+                        icon: Icons.wb_sunny_rounded,
+                        isActive: weatherState.locationName.contains('Anuradhapura'),
+                        onTap: () => weatherNotifier.setPresetCity('Anuradhapura'),
+                      ),
+                      const SizedBox(width: 8),
+                      _PresetButton(
+                        title: isSi ? 'යාපනය' : 'Jaffna',
+                        temp: 'North',
+                        icon: Icons.sunny,
+                        isActive: weatherState.locationName.contains('Jaffna'),
+                        onTap: () => weatherNotifier.setPresetCity('Jaffna'),
+                      ),
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 18),

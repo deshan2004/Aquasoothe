@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import '../services/sql_api_service.dart';
 
 class AuthRepository {
   static const String _userKey = 'aquasoothe_current_user_v1';
@@ -15,15 +18,15 @@ class AuthRepository {
   AuthRepository(this._prefs);
 
   UserModel? getCurrentUser() {
-    // 1. Check Firebase current user if available
+    // 1. Check Firebase current user if available (only permanent registered accounts)
     try {
       final fbUser = _firebaseAuth.currentUser;
-      if (fbUser != null) {
+      if (fbUser != null && !fbUser.isAnonymous) {
         return UserModel(
           id: fbUser.uid,
-          name: fbUser.displayName ?? (fbUser.isAnonymous ? 'Guest User' : 'User'),
-          email: fbUser.email ?? (fbUser.isAnonymous ? 'guest@aquasoothe.app' : ''),
-          isGuest: fbUser.isAnonymous,
+          name: fbUser.displayName ?? 'User',
+          email: fbUser.email ?? '',
+          isGuest: false,
           createdAt: fbUser.metadata.creationTime ?? DateTime.now(),
         );
       }
@@ -33,7 +36,9 @@ class AuthRepository {
     final rawJson = _prefs.getString(_userKey);
     if (rawJson == null || rawJson.isEmpty) return null;
     try {
-      return UserModel.fromJson(jsonDecode(rawJson));
+      final user = UserModel.fromJson(jsonDecode(rawJson));
+      if (user.isGuest) return null;
+      return user;
     } catch (_) {
       return null;
     }
@@ -43,8 +48,31 @@ class AuthRepository {
     required String name,
     required String email,
     required String password,
+    String? gender,
   }) async {
     final cleanEmail = email.trim().toLowerCase();
+
+    // 1. Try Microsoft SQL Server (MS SQL) backend first
+    try {
+      final sqlUser = await SqlApiService.signUp(
+        name: name,
+        email: cleanEmail,
+        password: password,
+      );
+      if (sqlUser != null) {
+        final withGender = UserModel(
+          id: sqlUser.id,
+          name: sqlUser.name,
+          email: sqlUser.email,
+          isGuest: sqlUser.isGuest,
+          gender: gender ?? sqlUser.gender,
+          createdAt: sqlUser.createdAt,
+        );
+        await _prefs.setString(_userKey, jsonEncode(withGender.toJson()));
+        return withGender;
+      }
+    } catch (_) {}
+
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: cleanEmail,
@@ -60,6 +88,7 @@ class AuthRepository {
           name: name.trim(),
           email: cleanEmail,
           isGuest: false,
+          gender: gender,
           createdAt: DateTime.now(),
         );
 
@@ -82,6 +111,7 @@ class AuthRepository {
       name: name.trim(),
       email: cleanEmail,
       isGuest: false,
+      gender: gender,
       createdAt: DateTime.now(),
     );
 
@@ -100,6 +130,19 @@ class AuthRepository {
     required String password,
   }) async {
     final cleanEmail = email.trim().toLowerCase();
+
+    // 1. Try Microsoft SQL Server (MS SQL) backend first
+    try {
+      final sqlUser = await SqlApiService.login(
+        email: cleanEmail,
+        password: password,
+      );
+      if (sqlUser != null) {
+        await _prefs.setString(_userKey, jsonEncode(sqlUser.toJson()));
+        return sqlUser;
+      }
+    } catch (_) {}
+
     try {
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: cleanEmail,
@@ -184,7 +227,101 @@ class AuthRepository {
     return guestUser;
   }
 
+  Future<UserModel> signInWithGoogle() async {
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      clientId: defaultTargetPlatform == TargetPlatform.iOS
+          ? '1054170301134-s4v24lhaot063776f0gtjbt3ssmai36d.apps.googleusercontent.com'
+          : null,
+      serverClientId: '1054170301134-grf2mqogvm55nukb9ur4oae0qed0v1v2.apps.googleusercontent.com',
+    );
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      throw Exception('Google Sign-In was cancelled by user');
+    }
+
+    final name = googleUser.displayName ?? 'Google User';
+    final email = googleUser.email.trim().toLowerCase();
+
+    try {
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final fb_auth.AuthCredential credential = fb_auth.GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final fbUserCredential = await _firebaseAuth.signInWithCredential(credential);
+      final fbUser = fbUserCredential.user;
+
+      final uid = fbUser?.uid ?? 'google_${googleUser.id}';
+
+      // Check if user already exists in Firestore and has gender set
+      String? existingGender;
+      try {
+        final doc = await _firestore.collection('users').doc(uid).get();
+        if (doc.exists && doc.data() != null) {
+          existingGender = doc.data()!['gender'] as String?;
+        }
+      } catch (_) {}
+
+      final userModel = UserModel(
+        id: uid,
+        name: fbUser?.displayName ?? name,
+        email: fbUser?.email ?? email,
+        isGuest: false,
+        gender: existingGender,
+        createdAt: fbUser?.metadata.creationTime ?? DateTime.now(),
+      );
+
+      try {
+        await _firestore.collection('users').doc(uid).set(userModel.toJson(), SetOptions(merge: true));
+      } catch (_) {}
+
+      await _prefs.setString(_userKey, jsonEncode(userModel.toJson()));
+      return userModel;
+    } catch (e) {
+      if (e is Exception && e.toString().contains('cancelled')) {
+        rethrow;
+      }
+      // Resilient fallback with Google account profile details
+      final userModel = UserModel(
+        id: 'google_${googleUser.id}',
+        name: name,
+        email: email,
+        isGuest: false,
+        createdAt: DateTime.now(),
+      );
+      await _prefs.setString(_userKey, jsonEncode(userModel.toJson()));
+      return userModel;
+    }
+  }
+
+  Future<UserModel> updateGender(String gender) async {
+    final currentUser = getCurrentUser();
+    final updated = (currentUser ?? UserModel(
+      id: _firebaseAuth.currentUser?.uid ?? 'user',
+      name: _firebaseAuth.currentUser?.displayName ?? 'User',
+      email: _firebaseAuth.currentUser?.email ?? '',
+      createdAt: DateTime.now(),
+    )).copyWith(gender: gender);
+
+    try {
+      final fbUser = _firebaseAuth.currentUser;
+      if (fbUser != null) {
+        await _firestore.collection('users').doc(fbUser.uid).set(
+          {'gender': gender},
+          SetOptions(merge: true),
+        );
+      }
+    } catch (_) {}
+
+    await _prefs.setString(_userKey, jsonEncode(updated.toJson()));
+    return updated;
+  }
+
   Future<void> logout() async {
+    try {
+      await GoogleSignIn().signOut();
+    } catch (_) {}
     try {
       await _firebaseAuth.signOut();
     } catch (_) {}

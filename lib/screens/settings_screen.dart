@@ -243,33 +243,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Sign Out Frosted Glass Button
+                  // Sign Out / Register Frosted Glass Button
                   Center(
-                    child: GlassCard(
-                      borderRadius: 18,
-                      blur: 14,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      margin: EdgeInsets.zero,
-                      borderColor: Colors.redAccent.withValues(alpha: 0.35),
-                      onTap: () async {
-                        await ref.read(authProvider.notifier).logout();
-                        if (context.mounted) {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (_) => const AuthScreen()),
-                          );
-                        }
-                      },
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            isSi ? 'පිටවීම' : 'Sign Out',
-                            style: const TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
+                    child: Builder(
+                      builder: (context) {
+                        final isGuest = user == null || user.isGuest;
+                        final accentTeal = isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648);
+                        return GlassCard(
+                          borderRadius: 18,
+                          blur: 14,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          margin: EdgeInsets.zero,
+                          borderColor: isGuest
+                              ? accentTeal.withValues(alpha: 0.35)
+                              : Colors.redAccent.withValues(alpha: 0.35),
+                          onTap: () async {
+                            if (!isGuest) {
+                              await ref.read(authProvider.notifier).logout();
+                            }
+                            if (context.mounted) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => const AuthScreen()),
+                              );
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isGuest ? Icons.login_rounded : Icons.logout_rounded,
+                                color: isGuest ? accentTeal : Colors.redAccent,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                isGuest
+                                    ? (isSi ? 'ගිණුමකට පිවිසෙන්න / සාදන්න' : 'Sign In / Register')
+                                    : (isSi ? 'පිටවීම' : 'Sign Out'),
+                                style: TextStyle(
+                                  color: isGuest ? accentTeal : Colors.redAccent,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ),
 
@@ -392,7 +412,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showAccountDetailsDialog(BuildContext context, dynamic user, bool isSi) {
-    final isLoggedIn = user != null;
+    final isLoggedIn = user != null && user.isGuest == false;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -402,9 +422,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${isSi ? "නම" : "Name"}: ${isLoggedIn ? user.name : (isSi ? "පරිශීලකයා" : "Guest User")}'),
+            Text('${isSi ? "තත්ත්වය" : "Status"}: ${isLoggedIn ? (isSi ? "සක්‍රිය ගිණුම" : "Active Member") : (isSi ? "අමුත්තාගේ මාදිලිය" : "Guest Mode")}'),
             const SizedBox(height: 8),
-            Text('${isSi ? "ඊමේල්" : "Email"}: ${isLoggedIn ? user.email : (isSi ? "සම්බන්ධ කර නැත" : "Not connected")}'),
+            Text('${isSi ? "නම" : "Name"}: ${isLoggedIn ? user.name : (isSi ? "අමුත්තා" : "Guest User")}'),
+            const SizedBox(height: 8),
+            Text('${isSi ? "ඊමේල්" : "Email"}: ${isLoggedIn ? user.email : (isSi ? "සම්බන්ධ කර නැත (Guest)" : "Not connected (Guest)")}'),
           ],
         ),
         actions: [

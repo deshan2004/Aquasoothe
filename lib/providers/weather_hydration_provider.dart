@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/weather_hydration_model.dart';
 import '../repositories/weather_hydration_repository.dart';
+import '../services/weather_location_service.dart';
 import 'hydration_provider.dart';
 
 final weatherHydrationRepositoryProvider = Provider<WeatherHydrationRepository>((ref) {
@@ -11,8 +12,52 @@ final weatherHydrationRepositoryProvider = Provider<WeatherHydrationRepository>(
 class WeatherHydrationNotifier extends StateNotifier<WeatherHydrationModel> {
   final WeatherHydrationRepository _repository;
   final Ref _ref;
+  bool _isLoading = false;
 
-  WeatherHydrationNotifier(this._repository, this._ref) : super(_repository.getWeatherSettings());
+  bool get isLoading => _isLoading;
+
+  WeatherHydrationNotifier(this._repository, this._ref) : super(_repository.getWeatherSettings()) {
+    // Automatically detect and update live weather on app initialization
+    autoDetectLocationAndWeather();
+  }
+
+  /// Automatically tracks user location and fetches live hyper-local weather
+  Future<void> autoDetectLocationAndWeather() async {
+    _isLoading = true;
+    try {
+      final data = await WeatherLocationService.fetchCurrentLocationAndWeather();
+      final updated = state.copyWith(
+        locationName: data.locationName,
+        temperatureCelsius: data.temperature,
+        humidityPercent: data.humidity,
+      );
+      state = updated;
+      await _repository.saveWeatherSettings(updated);
+      _syncWithHydrationGoal();
+    } catch (_) {
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  /// Fetches live weather for a specific selected city
+  Future<void> setPresetCity(String cityName) async {
+    _isLoading = true;
+    try {
+      final data = await WeatherLocationService.fetchWeatherForCity(cityName);
+      final updated = state.copyWith(
+        locationName: data.locationName,
+        temperatureCelsius: data.temperature,
+        humidityPercent: data.humidity,
+      );
+      state = updated;
+      await _repository.saveWeatherSettings(updated);
+      _syncWithHydrationGoal();
+    } catch (_) {
+    } finally {
+      _isLoading = false;
+    }
+  }
 
   Future<void> updateTemperature(double temp) async {
     final updated = state.copyWith(temperatureCelsius: temp);

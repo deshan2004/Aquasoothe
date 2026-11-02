@@ -66,7 +66,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
     final isOnboardingCompleted = settingsState.isOnboardingCompleted;
 
     Widget targetScreen;
-    if (user == null) {
+    if (user == null || user.isGuest) {
       targetScreen = const AuthScreen();
     } else if (!isOnboardingCompleted) {
       targetScreen = const OnboardingScreen();

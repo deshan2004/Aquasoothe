@@ -35,9 +35,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final primaryTeal = isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648);
     final dividerColor = (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.1);
 
-    final userName = user?.name.isNotEmpty == true ? user!.name : (isSi ? 'පරිශීලකයා' : 'AquaSoothe User');
-    final userEmail = user?.email.isNotEmpty == true ? user!.email : (isSi ? 'අමුත්තෙකු ලෙස සම්බන්ධයි' : 'Guest Account');
-    final initialLetter = userName.isNotEmpty ? userName[0].toUpperCase() : 'A';
+    final isGuest = user == null || user.isGuest;
+    final userName = (!isGuest && user.name.trim().isNotEmpty) ? user.name.trim() : (isSi ? 'අමුත්තා' : 'Guest User');
+    final userEmail = (!isGuest && user.email.trim().isNotEmpty) ? user.email.trim() : (isSi ? 'අමුත්තෙකු ලෙස සම්බන්ධයි' : 'Guest Account');
+    final initialLetter = (!isGuest && userName.isNotEmpty) ? userName[0].toUpperCase() : 'G';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -187,35 +188,72 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: primaryTeal.withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: primaryTeal.withValues(alpha: 0.25),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.verified_user_rounded,
-                                          size: 14,
-                                          color: primaryTeal,
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          isSi ? 'සක්‍රිය ගිණුම' : 'Active Member',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: primaryTeal,
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: (isGuest ? Colors.amber.shade700 : primaryTeal).withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: (isGuest ? Colors.amber.shade700 : primaryTeal).withValues(alpha: 0.3),
+                                            width: 1,
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              isGuest ? Icons.person_outline_rounded : Icons.verified_user_rounded,
+                                              size: 14,
+                                              color: isGuest ? Colors.amber.shade700 : primaryTeal,
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Text(
+                                              isGuest
+                                                  ? (isSi ? 'අමුත්තාගේ මාදිලිය' : 'Guest Mode')
+                                                  : (isSi ? 'සක්‍රිය ගිණුම' : 'Active Member'),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: isGuest ? Colors.amber.shade700 : primaryTeal,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (!isGuest && user.gender != null)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: primaryTeal.withValues(alpha: 0.10),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: primaryTeal.withValues(alpha: 0.25),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(user.gender == 'female' ? '👩' : '👨', style: const TextStyle(fontSize: 12)),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                user.gender == 'female'
+                                                    ? (isSi ? 'ස්ත්‍රී' : 'Female')
+                                                    : (isSi ? 'පුරුෂ' : 'Male'),
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: primaryTeal,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -414,7 +452,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       blur: 14,
                       padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
                       margin: EdgeInsets.zero,
-                      borderColor: Colors.redAccent.withValues(alpha: 0.35),
+                      borderColor: isGuest
+                          ? primaryTeal.withValues(alpha: 0.4)
+                          : Colors.redAccent.withValues(alpha: 0.35),
                       onTap: () async {
                         await ref.read(authProvider.notifier).logout();
                         if (context.mounted) {
@@ -426,12 +466,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                          Icon(
+                            isGuest ? Icons.login_rounded : Icons.logout_rounded,
+                            color: isGuest ? primaryTeal : Colors.redAccent,
+                            size: 20,
+                          ),
                           const SizedBox(width: 10),
                           Text(
-                            isSi ? 'ගිණුමෙන් පිටවීම' : 'Sign Out',
-                            style: const TextStyle(
-                              color: Colors.redAccent,
+                            isGuest
+                                ? (isSi ? 'ගිණුමකට පිවිසෙන්න / සාදන්න' : 'Sign In / Register')
+                                : (isSi ? 'ගිණුමෙන් පිටවීම' : 'Sign Out'),
+                            style: TextStyle(
+                              color: isGuest ? primaryTeal : Colors.redAccent,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),

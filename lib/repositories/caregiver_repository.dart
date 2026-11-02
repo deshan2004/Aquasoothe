@@ -3,10 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/caregiver_model.dart';
 
 class CaregiverRepository {
-  static const String _caregiverKey = 'aquasoothe_caregiver_settings_v1';
   final SharedPreferences _prefs;
+  final String _userKey;
 
-  CaregiverRepository(this._prefs);
+  CaregiverRepository(this._prefs, {this._userKey = 'guest_'});
+
+  String get _caregiverKey => '${_userKey}caregiver_settings_v1';
 
   CaregiverSettings getSettings() {
     final rawJson = _prefs.getString(_caregiverKey);

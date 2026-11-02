@@ -19,6 +19,7 @@ import '../widgets/breathing_exercise_sheet.dart';
 import '../widgets/medication_schedule_sheet.dart';
 import '../widgets/gentle_alarm_sheet.dart';
 import '../widgets/weather_hydration_sheet.dart';
+import '../providers/custom_sound_provider.dart';
 import 'main_navigation_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -40,15 +41,26 @@ class HomeScreen extends ConsumerWidget {
     final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
     final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A);
 
+    final customSounds = ref.watch(customSoundProvider);
     final lastSoundId = settingsState.lastUsedSoundId;
-    final currentSound = SoundTrack.defaultTracks.firstWhere(
-      (t) => t.id == lastSoundId,
-      orElse: () => SoundTrack.defaultTracks[1], // Default Ocean/Deep Ocean
-    );
+    final SoundTrack currentSound;
+    if (customSounds.isNotEmpty) {
+      currentSound = customSounds.firstWhere(
+        (t) => t.id == lastSoundId,
+        orElse: () => customSounds.first,
+      );
+    } else {
+      currentSound = SoundTrack.defaultTracks.firstWhere(
+        (t) => t.id == lastSoundId,
+        orElse: () => SoundTrack.defaultTracks[1], // Default Ocean/Deep Ocean
+      );
+    }
 
     final isSi = settingsState.isSinhala;
+    final isPersonalized = currentSound.category == 'AI Personalized' || currentSound.id.startsWith('ai_bespoke_');
     final isPlaying = audioNotifier.isPlaying && audioNotifier.currentTrack.id == currentSound.id;
-    final displayName = user != null && user.name.isNotEmpty ? user.name : (isSi ? 'පරිශීලකයා' : 'Guest User');
+    final isGuest = user == null || user.isGuest;
+    final displayName = (!isGuest && user.name.trim().isNotEmpty) ? user.name.trim() : (isSi ? 'අමුත්තා' : 'Guest');
 
     // Calculate dynamic time and greeting
     final now = DateTime.now();
@@ -126,7 +138,7 @@ class HomeScreen extends ConsumerWidget {
               color: const Color(0xFF0C4648),
               backgroundColor: Colors.white,
               onRefresh: () async {
-                await Future.delayed(const Duration(milliseconds: 600));
+                await ref.read(weatherHydrationProvider.notifier).autoDetectLocationAndWeather();
                 ref.invalidate(hydrationProvider);
                 ref.invalidate(settingsProvider);
               },
@@ -890,7 +902,7 @@ class HomeScreen extends ConsumerWidget {
 
                     const SizedBox(height: 14),
 
-                    // LAST PLAYED Card with Animated Equalizer Visualizer & Glass Look
+                    // LAST PLAYED / AI PERSONALIZED Card with Animated Equalizer Visualizer & Glass Look
                     GlassCard(
                       borderRadius: 22,
                       blur: 18,
@@ -905,13 +917,25 @@ class HomeScreen extends ConsumerWidget {
                               children: [
                                 Row(
                                   children: [
+                                    if (isPersonalized) ...[
+                                      Icon(
+                                        Icons.auto_awesome_rounded,
+                                        size: 13,
+                                        color: isDark ? const Color(0xFF70D6CE) : const Color(0xFF00897B),
+                                      ),
+                                      const SizedBox(width: 5),
+                                    ],
                                     Text(
-                                      isSi ? 'අවසන් වරට වාදනය වූ' : 'LAST PLAYED',
+                                      isPersonalized
+                                          ? (isSi ? 'ඔබටම වෙන්වූ AI නාදය' : 'YOUR AI PERSONALIZED SOUND')
+                                          : (isSi ? 'අවසන් වරට වාදනය වූ' : 'LAST PLAYED'),
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2,
-                                        color: subtitleColor,
+                                        letterSpacing: 1.1,
+                                        color: isPersonalized
+                                            ? (isDark ? const Color(0xFF70D6CE) : const Color(0xFF00897B))
+                                            : subtitleColor,
                                       ),
                                     ),
                                     if (isPlaying) ...[
@@ -927,7 +951,7 @@ class HomeScreen extends ConsumerWidget {
                                         const SizedBox(width: 8),
                                         Text(
                                           isSi
-                                              ? '• ස්වයංක්‍රීයව නතර වේ ${audioNotifier.formattedTimeRemaining}'
+                                              ? '• ${audioNotifier.formattedTimeRemaining}'
                                               : '• Auto-off ${audioNotifier.formattedTimeRemaining}',
                                           style: TextStyle(
                                             fontSize: 11,
@@ -951,6 +975,19 @@ class HomeScreen extends ConsumerWidget {
                                     color: textColor,
                                   ),
                                 ),
+                                if (isPersonalized && currentSound.description.isNotEmpty) ...[
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    currentSound.description,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: subtitleColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),

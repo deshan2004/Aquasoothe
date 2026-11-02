@@ -6,13 +6,17 @@ import '../models/sound_model.dart';
 import '../repositories/alarm_repository.dart';
 import '../services/audio_service.dart';
 import '../services/notification_service.dart';
+import '../core/utils/user_scope.dart';
+import 'auth_provider.dart';
 import 'hydration_provider.dart';
 
 import '../providers/audio_provider.dart';
 
 final alarmRepositoryProvider = Provider<AlarmRepository>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  return AlarmRepository(prefs);
+  final user = ref.watch(authProvider);
+  final userKey = UserScope.getKey(user);
+  return AlarmRepository(prefs, userKey: userKey);
 });
 
 class AlarmNotifier extends StateNotifier<AlarmModel> {

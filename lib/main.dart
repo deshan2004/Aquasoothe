@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
+import 'firebase_options.dart';
 import 'providers/hydration_provider.dart';
 import 'providers/settings_provider.dart';
 import 'screens/splash_screen.dart';
@@ -11,9 +12,11 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase safely
+  // Initialize Firebase with project credentials
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     debugPrint('Firebase initialization note: $e');
   }

@@ -2,11 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/medication_model.dart';
 import '../repositories/medication_repository.dart';
 import '../services/notification_service.dart';
+import '../core/utils/user_scope.dart';
+import 'auth_provider.dart';
 import 'hydration_provider.dart';
 
 final medicationRepositoryProvider = Provider<MedicationRepository>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  return MedicationRepository(prefs);
+  final user = ref.watch(authProvider);
+  final userKey = UserScope.getKey(user);
+  return MedicationRepository(prefs, userKey: userKey);
 });
 
 class MedicationNotifier extends StateNotifier<List<MedicationItem>> {

@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/sleep_journal_model.dart';
 import '../repositories/sleep_journal_repository.dart';
+import '../core/utils/user_scope.dart';
+import 'auth_provider.dart';
 import 'hydration_provider.dart';
 
 final sleepJournalRepositoryProvider = Provider<SleepJournalRepository>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  return SleepJournalRepository(prefs);
+  final user = ref.watch(authProvider);
+  final userKey = UserScope.getKey(user);
+  return SleepJournalRepository(prefs, userKey: userKey);
 });
 
 class SleepJournalState {

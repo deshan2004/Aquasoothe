@@ -17,11 +17,13 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     required String name,
     required String email,
     required String password,
+    String? gender,
   }) async {
     final user = await _repository.signUp(
       name: name,
       email: email,
       password: password,
+      gender: gender,
     );
     state = user;
   }
@@ -40,6 +42,16 @@ class AuthNotifier extends StateNotifier<UserModel?> {
   Future<void> loginAsGuest() async {
     final guest = await _repository.loginAsGuest();
     state = guest;
+  }
+
+  Future<void> signInWithGoogle() async {
+    final user = await _repository.signInWithGoogle();
+    state = user;
+  }
+
+  Future<void> updateGender(String gender) async {
+    final updated = await _repository.updateGender(gender);
+    state = updated;
   }
 
   Future<void> logout() async {

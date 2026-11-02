@@ -3,16 +3,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/hydration_model.dart';
+import '../services/sql_api_service.dart';
 
 class HydrationRepository {
-  static const String _logsKey = 'aquasoothe_hydration_logs_v1';
-  static const String _goalKey = 'aquasoothe_hydration_goal_v1';
-
   final SharedPreferences _prefs;
+  final String _userKey;
+
   fb_auth.FirebaseAuth get _firebaseAuth => fb_auth.FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
-  HydrationRepository(this._prefs);
+  HydrationRepository(this._prefs, {this._userKey = 'guest_'});
+
+  String get _logsKey => '${_userKey}hydration_logs_v1';
+  String get _goalKey => '${_userKey}hydration_goal_v1';
 
   List<HydrationLog> getLogs() {
     final rawJson = _prefs.getString(_logsKey);
@@ -31,6 +34,13 @@ class HydrationRepository {
     final logs = getLogs();
     logs.insert(0, log); // Newest first
     await _prefs.setString(_logsKey, jsonEncode(logs.map((e) => e.toJson()).toList()));
+
+    // Sync with MS SQL backend
+    try {
+      if (!_userKey.startsWith('guest')) {
+        await SqlApiService.addHydrationLog(_userKey, log);
+      }
+    } catch (_) {}
 
     // Sync with Firestore if user is authenticated
     try {
@@ -77,6 +87,14 @@ class HydrationRepository {
 
   Future<void> saveGoal(HydrationGoal goal) async {
     await _prefs.setString(_goalKey, jsonEncode(goal.toJson()));
+
+    // Sync with MS SQL backend
+    try {
+      if (!_userKey.startsWith('guest')) {
+        await SqlApiService.saveHydrationGoal(_userKey, goal);
+      }
+    } catch (_) {}
+
     try {
       final uid = _firebaseAuth.currentUser?.uid;
       if (uid != null && uid.isNotEmpty) {

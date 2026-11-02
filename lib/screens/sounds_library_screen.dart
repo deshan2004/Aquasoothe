@@ -11,11 +11,18 @@ import '../widgets/sound_visualizer_widget.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/unified_sound_studio_sheet.dart';
 
-class SoundsLibraryScreen extends ConsumerWidget {
+class SoundsLibraryScreen extends ConsumerStatefulWidget {
   const SoundsLibraryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SoundsLibraryScreen> createState() => _SoundsLibraryScreenState();
+}
+
+class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
+  bool _showAllCatalog = false;
+
+  @override
+  Widget build(BuildContext context) {
     final audioNotifier = ref.watch(audioServiceProvider);
     final customSounds = ref.watch(customSoundProvider);
     final defaultTracks = SoundTrack.defaultTracks;
@@ -75,7 +82,23 @@ class SoundsLibraryScreen extends ConsumerWidget {
       ),
     };
 
-    final allTracks = [...defaultTracks, ...customSounds];
+    final hasPersonalizedSound = customSounds.isNotEmpty;
+    // As requested: Only that relevant sound is shown on their interface!
+    final allTracks = (hasPersonalizedSound && !_showAllCatalog)
+        ? customSounds
+        : [...customSounds, ...defaultTracks];
+
+    final String pageTitle = (hasPersonalizedSound && !_showAllCatalog)
+        ? (isSi ? 'ඔබට නියමිත AI නාදය' : 'Your Prescribed Sound')
+        : (isSi ? 'සුව නින්දේ ශබ්ද' : 'Sleep Soundscapes');
+
+    final String pageSubtitle = (hasPersonalizedSound && !_showAllCatalog)
+        ? (isSi ? 'ඔබේ නින්දේ අවශ්‍යතාවයට ගැලපෙන සුවිශේෂී නාදය පමණක් මෙහි ඇත.' : 'Specially formulated for your personal sleep challenge.')
+        : (isSi ? 'සුවබර නින්ද සඳහා සුවිශේෂී ස්වභාවික නාද.' : 'Curated audio for deep restorative rest.');
+
+    final String countBadge = (hasPersonalizedSound && !_showAllCatalog)
+        ? (isSi ? 'අදාළ නාදය' : 'Prescribed for You')
+        : (isSi ? '${allTracks.length} ශබ්ද' : '${allTracks.length} Sounds');
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -141,7 +164,7 @@ class SoundsLibraryScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isSi ? 'සුව නින්දේ ශබ්ද' : 'Sleep Soundscapes',
+                              pageTitle,
                               style: TextStyle(
                                 fontFamily: 'serif',
                                 fontSize: 28,
@@ -151,7 +174,7 @@ class SoundsLibraryScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              isSi ? 'සුවබර නින්ද සඳහා සුවිශේෂී ස්වභාවික නාද.' : 'Curated audio for deep restorative rest.',
+                              pageSubtitle,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: subtitleColor,
@@ -172,7 +195,7 @@ class SoundsLibraryScreen extends ConsumerWidget {
                           ),
                         ),
                         child: Text(
-                          isSi ? '${allTracks.length} ශබ්ද' : '${allTracks.length} Sounds',
+                          countBadge,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -639,11 +662,35 @@ class SoundsLibraryScreen extends ConsumerWidget {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        if (track.category == 'AI Personalized' || track.id.startsWith('ai_bespoke_')) ...[
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.auto_awesome_rounded,
+                                                size: 13,
+                                                color: isDark ? const Color(0xFF70D6CE) : const Color(0xFF00897B),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                isSi ? 'ඔබටම වෙන්වූ නාදය' : 'AI Prescribed for You',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isDark ? const Color(0xFF70D6CE) : const Color(0xFF00897B),
+                                                  letterSpacing: 0.2,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 3),
+                                        ],
                                         Text(
-                                          track.title
-                                              .replaceAll('Cascading ', '')
-                                              .replaceAll('Soothing ', '')
-                                              .replaceAll('Deep ', ''),
+                                          (track.category == 'AI Personalized' || track.id.startsWith('ai_bespoke_'))
+                                              ? track.title
+                                              : track.title
+                                                  .replaceAll('Cascading ', '')
+                                                  .replaceAll('Soothing ', '')
+                                                  .replaceAll('Deep ', ''),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -654,7 +701,9 @@ class SoundsLibraryScreen extends ConsumerWidget {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          'Restorative Ambient Loop',
+                                          (track.category == 'AI Personalized' || track.id.startsWith('ai_bespoke_'))
+                                              ? (track.description.isNotEmpty ? track.description : (isSi ? 'පුද්ගලීකෘත AI නින්දේ නාදය' : 'AI Restorative Harmonic Loop'))
+                                              : 'Restorative Ambient Loop',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -757,6 +806,46 @@ class SoundsLibraryScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
+
+                  if (hasPersonalizedSound) ...[
+                    const SizedBox(height: 14),
+                    Center(
+                      child: ScaleButton(
+                        onTap: () => setState(() => _showAllCatalog = !_showAllCatalog),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _showAllCatalog ? Icons.check_circle_outline_rounded : Icons.explore_outlined,
+                                size: 15,
+                                color: subtitleColor,
+                              ),
+                              const SizedBox(width: 7),
+                              Text(
+                                _showAllCatalog
+                                    ? (isSi ? 'මගේ නාදය පමණක් පෙන්වන්න' : 'Show Only My Prescribed Sound')
+                                    : (isSi ? 'අනෙකුත් සියලුම ශබ්ද බලන්න' : 'Explore All Catalog Sounds'),
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: subtitleColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
 
                   // Space for floating bottom glass dock
                   const SizedBox(height: 110),

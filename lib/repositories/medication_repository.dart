@@ -1,12 +1,19 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/medication_model.dart';
 
 class MedicationRepository {
-  static const String _key = 'aquasoothe_medications_v1';
   final SharedPreferences _prefs;
+  final String _userKey;
 
-  MedicationRepository(this._prefs);
+  fb_auth.FirebaseAuth get _firebaseAuth => fb_auth.FirebaseAuth.instance;
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+
+  MedicationRepository(this._prefs, {this._userKey = 'guest_'});
+
+  String get _key => '${_userKey}medications_v1';
 
   List<MedicationItem> getMedications() {
     final raw = _prefs.getString(_key);
@@ -39,5 +46,21 @@ class MedicationRepository {
   Future<void> saveMedications(List<MedicationItem> items) async {
     final encoded = jsonEncode(items.map((m) => m.toJson()).toList());
     await _prefs.setString(_key, encoded);
+
+    // Sync with Firestore if user is authenticated
+    try {
+      final uid = _firebaseAuth.currentUser?.uid;
+      if (uid != null && uid.isNotEmpty) {
+        await _firestore
+            .collection('users')
+            .doc(uid)
+            .collection('medications')
+            .doc('current')
+            .set({
+              'updatedAt': FieldValue.serverTimestamp(),
+              'items': items.map((m) => m.toJson()).toList(),
+            }, SetOptions(merge: true));
+      }
+    } catch (_) {}
   }
 }

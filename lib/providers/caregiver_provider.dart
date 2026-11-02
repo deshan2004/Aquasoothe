@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/caregiver_model.dart';
 import '../repositories/caregiver_repository.dart';
+import '../core/utils/user_scope.dart';
+import 'auth_provider.dart';
 import 'hydration_provider.dart';
 
 final caregiverRepositoryProvider = Provider<CaregiverRepository>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
-  return CaregiverRepository(prefs);
+  final user = ref.watch(authProvider);
+  final userKey = UserScope.getKey(user);
+  return CaregiverRepository(prefs, userKey: userKey);
 });
 
 class CaregiverNotifier extends StateNotifier<CaregiverSettings> {
