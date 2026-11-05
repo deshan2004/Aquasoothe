@@ -22,14 +22,14 @@ class CustomSoundRepository {
     try {
       final List<dynamic> decoded = jsonDecode(rawJson);
       return decoded.map((e) {
-        final iconCode = e['iconCode'] as int? ?? Icons.auto_awesome_rounded.codePoint;
+        final iconCode = e['iconCode'] as int? ?? Icons.music_note_rounded.codePoint;
         return SoundTrack(
           id: e['id'] as String,
           title: e['title'] as String,
-          description: e['description'] as String,
+          description: e['description'] as String? ?? '',
           assetPath: e['assetPath'] as String,
           icon: _getIconFromCode(iconCode),
-          category: 'AI Custom',
+          category: e['category'] as String? ?? 'User Custom',
         );
       }).toList();
     } catch (_) {
@@ -39,6 +39,7 @@ class CustomSoundRepository {
 
   Future<void> saveCustomSound(SoundTrack sound) async {
     final list = getCustomSounds();
+    list.removeWhere((s) => s.id == sound.id); // Prevent duplicate id
     list.insert(0, sound);
     
     final jsonList = list.map((s) => {
@@ -88,6 +89,18 @@ class CustomSoundRepository {
         }).toList();
 
     await _prefs.setString(_customSoundsKey, jsonEncode(jsonList));
+
+    try {
+      final uid = _firebaseAuth.currentUser?.uid;
+      if (uid != null && uid.isNotEmpty) {
+        await _firestore
+            .collection('users')
+            .doc(uid)
+            .collection('custom_sounds')
+            .doc(id)
+            .delete();
+      }
+    } catch (_) {}
   }
 
   IconData _getIconFromCode(int codePoint) {
@@ -96,6 +109,12 @@ class CustomSoundRepository {
     if (codePoint == Icons.nightlight_round.codePoint) return Icons.nightlight_round;
     if (codePoint == Icons.water_rounded.codePoint) return Icons.water_rounded;
     if (codePoint == Icons.park_rounded.codePoint) return Icons.park_rounded;
-    return Icons.auto_awesome_rounded;
+    if (codePoint == Icons.music_note_rounded.codePoint) return Icons.music_note_rounded;
+    if (codePoint == Icons.spa_rounded.codePoint) return Icons.spa_rounded;
+    if (codePoint == Icons.favorite_rounded.codePoint) return Icons.favorite_rounded;
+    if (codePoint == Icons.volume_up_rounded.codePoint) return Icons.volume_up_rounded;
+    if (codePoint == Icons.graphic_eq_rounded.codePoint) return Icons.graphic_eq_rounded;
+    if (codePoint == Icons.auto_awesome_rounded.codePoint) return Icons.auto_awesome_rounded;
+    return Icons.music_note_rounded;
   }
 }

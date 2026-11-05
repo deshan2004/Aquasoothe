@@ -104,7 +104,9 @@ class AudioServiceNotifier extends ChangeNotifier {
       artUri: Uri.parse('asset:///assets/images/logo.png'),
     );
 
-    if (track.assetPath.startsWith('assets/')) {
+    if (track.assetPath.startsWith('http://') || track.assetPath.startsWith('https://')) {
+      return AudioSource.uri(Uri.parse(track.assetPath), tag: mediaItem);
+    } else if (track.assetPath.startsWith('assets/')) {
       return AudioSource.asset(track.assetPath, tag: mediaItem);
     } else {
       return AudioSource.file(track.assetPath, tag: mediaItem);
@@ -119,7 +121,9 @@ class AudioServiceNotifier extends ChangeNotifier {
   }
 
   Future<void> _setSecondarySource(SoundTrack track) async {
-    if (track.assetPath.startsWith('assets/')) {
+    if (track.assetPath.startsWith('http://') || track.assetPath.startsWith('https://')) {
+      await _secondaryPlayer.setAudioSource(AudioSource.uri(Uri.parse(track.assetPath)));
+    } else if (track.assetPath.startsWith('assets/')) {
       await _secondaryPlayer.setAudioSource(AudioSource.asset(track.assetPath));
     } else {
       await _secondaryPlayer.setAudioSource(AudioSource.file(track.assetPath));

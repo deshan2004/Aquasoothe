@@ -10,6 +10,7 @@ import '../widgets/scale_button.dart';
 import '../widgets/sound_visualizer_widget.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/unified_sound_studio_sheet.dart';
+import '../widgets/add_custom_sound_sheet.dart';
 
 class SoundsLibraryScreen extends ConsumerStatefulWidget {
   const SoundsLibraryScreen({super.key});
@@ -185,23 +186,65 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.12),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ScaleButton(
+                            onTap: () => showAddCustomSoundSheet(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.25),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.add_rounded,
+                                    size: 15,
+                                    color: isDark ? const Color(0xFF0C4648) : Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    isSi ? 'එක්කරන්න' : 'Add Sound',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? const Color(0xFF0C4648) : Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          countBadge,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: subtitleColor,
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.12),
+                              ),
+                            ),
+                            child: Text(
+                              countBadge,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: subtitleColor,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -662,7 +705,28 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (track.category == 'AI Personalized' || track.id.startsWith('ai_bespoke_')) ...[
+                                        if (track.category == 'User Custom' || track.id.startsWith('user_sound_')) ...[
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.phone_android_rounded,
+                                                size: 13,
+                                                color: isDark ? const Color(0xFFFFAE85) : const Color(0xFFC2410C),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                isSi ? 'දුරකථනයෙන් එක් කළ ශබ්දය' : 'Imported from Phone',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isDark ? const Color(0xFFFFAE85) : const Color(0xFFC2410C),
+                                                  letterSpacing: 0.2,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 3),
+                                        ] else if (track.category == 'AI Personalized' || track.id.startsWith('ai_bespoke_')) ...[
                                           Row(
                                             children: [
                                               Icon(
@@ -719,6 +783,58 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                               ),
                             ),
                             const SizedBox(width: 10),
+                            if (track.category == 'User Custom' || track.id.startsWith('user_sound_')) ...[
+                              ScaleButton(
+                                onTap: () async {
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      backgroundColor: isDark ? const Color(0xFF13272C) : Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                      title: Text(
+                                        isSi ? 'ශබ්දය ඉවත් කරන්නද?' : 'Delete Sound?',
+                                        style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+                                      ),
+                                      content: Text(
+                                        isSi
+                                            ? '"${track.title}" ශබ්දය ඔබගේ Library එකෙන් ඉවත් කිරීමට අවශ්‍යද?'
+                                            : 'Are you sure you want to remove "${track.title}" from your library?',
+                                        style: TextStyle(color: subtitleColor),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(ctx).pop(false),
+                                          child: Text(isSi ? 'නැත' : 'Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.of(ctx).pop(true),
+                                          child: Text(
+                                            isSi ? 'ඉවත් කරන්න' : 'Delete',
+                                            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed == true) {
+                                    if (track.id == currentTrack.id && isPlaying) {
+                                      await audioNotifier.stop();
+                                    }
+                                    await ref.read(customSoundProvider.notifier).deleteCustomSound(track.id);
+                                  }
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 18),
+                                ),
+                              ),
+                            ],
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               width: 42,

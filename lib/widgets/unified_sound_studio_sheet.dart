@@ -7,6 +7,7 @@ import 'ai_sound_matcher_dialog.dart';
 import 'soundscape_mixer_dialog.dart';
 import 'scale_button.dart';
 import 'glass_card.dart';
+import 'add_custom_sound_sheet.dart';
 
 /// Unified All-in-One Sound Studio Hub for Seniors & All Users
 class UnifiedSoundStudioSheet extends ConsumerWidget {
@@ -180,6 +181,27 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                     ),
                     builder: (_) => const AISoundMatcherDialog(),
                   );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              // Tool 4: Add from Phone / Browser
+              _buildStudioOptionCard(
+                context: context,
+                isDark: isDark,
+                textColor: textColor,
+                subtitleColor: subtitleColor,
+                icon: Icons.add_to_photos_rounded,
+                iconColor: const Color(0xFFD97706),
+                iconBg: const Color(0xFFFEF3C7),
+                title: 'Add Sound from Phone',
+                description: 'Import MP3, WAV from device files or web link',
+                badgeText: 'File Browser',
+                badgeColor: const Color(0xFFD97706),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  showAddCustomSoundSheet(context);
                 },
               ),
 
