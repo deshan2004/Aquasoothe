@@ -37,6 +37,7 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
     final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A);
+    const primaryTeal = Color(0xFF0C4648);
 
     final Map<String, CardStyle> cardStyles = {
       'waterfall': const CardStyle(
@@ -155,109 +156,117 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Header title & count badge
+                  // Header title & count badge (Full width so words never break)
+                  Text(
+                    pageTitle,
+                    style: TextStyle(
+                      fontFamily: 'serif',
+                      fontSize: 27,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    pageSubtitle,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      color: subtitleColor,
+                      fontWeight: FontWeight.w500,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Action Buttons Row (Add Sound & Prescribed Badge)
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              pageTitle,
-                              style: TextStyle(
-                                fontFamily: 'serif',
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
+                      ScaleButton(
+                        onTap: () => showAddCustomSoundSheet(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0C4648), Color(0xFF165B5F)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            const SizedBox(height: 4),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0C4648).withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.add_circle_outline_rounded,
+                                size: 16,
+                                color: Color(0xFF70D6CE),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isSi ? 'ශබ්දයක් එක්කරන්න' : 'Add Sound',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: (isDark ? const Color(0xFF1E3A40) : const Color(0xFFE6F4F2)),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF5ED1C7).withValues(alpha: 0.4),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.auto_awesome_rounded,
+                              size: 13,
+                              color: isDark ? const Color(0xFF70D6CE) : primaryTeal,
+                            ),
+                            const SizedBox(width: 5),
                             Text(
-                              pageSubtitle,
+                              countBadge,
                               style: TextStyle(
-                                fontSize: 14,
-                                color: subtitleColor,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? const Color(0xFF70D6CE) : primaryTeal,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ScaleButton(
-                            onTap: () => showAddCustomSoundSheet(context),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.25),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.add_rounded,
-                                    size: 15,
-                                    color: isDark ? const Color(0xFF0C4648) : Colors.white,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    isSi ? 'එක්කරන්න' : 'Add Sound',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? const Color(0xFF0C4648) : Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.12),
-                              ),
-                            ),
-                            child: Text(
-                              countBadge,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: subtitleColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
 
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 20),
 
-                  // Active Sound & Auto-off Sleep Timer Glass Card
+                  // Sleek Frosted Glass Sleep Timer & Active Controls Card
                   GlassCard(
                     borderRadius: 24,
                     blur: 18,
-                    padding: const EdgeInsets.all(20),
-                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(18),
+                    margin: const EdgeInsets.only(bottom: 18),
+                    borderColor: Colors.white.withValues(alpha: isDark ? 0.12 : 0.6),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (isPlaying) ...[
                           Row(
@@ -296,15 +305,15 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                                     color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(Icons.pause_rounded, color: textColor, size: 24),
+                                  child: Icon(Icons.pause_rounded, color: textColor, size: 22),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
-                              Icon(Icons.volume_up_rounded, color: textColor, size: 20),
+                              Icon(Icons.volume_up_rounded, color: textColor, size: 18),
                               Expanded(
                                 child: SliderTheme(
                                   data: SliderThemeData(
@@ -312,7 +321,7 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                                     activeTrackColor: textColor,
                                     inactiveTrackColor: textColor.withValues(alpha: 0.15),
                                     thumbColor: textColor,
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                                   ),
                                   child: Slider(
                                     value: audioNotifier.volume,
@@ -324,21 +333,22 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                               ),
                               Text(
                                 '${(audioNotifier.volume * 100).round()}%',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 13),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 12),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           Divider(height: 1, color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.1)),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                         ],
-                        // Sleep Timer Header
+
+                        // Sleep Timer Header & Live Time
                         Row(
                           children: [
-                            Icon(Icons.timer_outlined, color: textColor, size: 20),
+                            Icon(Icons.timer_outlined, color: textColor, size: 18),
                             const SizedBox(width: 8),
                             Text(
-                              isSi ? 'නින්දේ ටයිමරය (Auto-Off)' : 'Auto-Off Sleep Timer',
+                              isSi ? 'නින්දේ ටයිමරය' : 'Auto-Off Sleep Timer',
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor),
                             ),
                             const Spacer(),
@@ -354,227 +364,86 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.hourglass_bottom_rounded, size: 14, color: textColor),
+                                    Icon(Icons.hourglass_bottom_rounded, size: 13, color: textColor),
                                     const SizedBox(width: 4),
                                     Text(
                                       'Off in ${audioNotifier.formattedTimeRemaining}',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: textColor),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: textColor),
                                     ),
                                   ],
+                                ),
+                              )
+                            else
+                              ScaleButton(
+                                onTap: () => _showCustomSleepTimerSheet(context, audioNotifier, isSi, isDark),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.tune_rounded, size: 13, color: textColor),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${audioNotifier.customTimerMinutes}m',
+                                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: textColor),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                           ],
                         ),
-                        const SizedBox(height: 12),
 
-                        // Direct Interactive Custom Time Box (Allows setting ANY custom time directly)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.18),
-                              width: 1.2,
+                        const SizedBox(height: 8),
+
+                        // Interactive Live Slider on Card (5 to 180 Minutes)
+                        Row(
+                          children: [
+                            Text(
+                              '5m',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: subtitleColor),
                             ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.12),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(Icons.tune_rounded, size: 16, color: textColor),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          isSi ? 'ඔබ කැමති වේලාවක් (Custom Time)' : 'Set Any Custom Duration',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: textColor,
-                                          ),
-                                        ),
-                                        Text(
-                                          isSi
-                                              ? 'විනාඩි ${audioNotifier.customTimerMinutes} කින් ශබ්දය ක්‍රමයෙන් නැවතේ'
-                                              : 'Audio fades off after ${audioNotifier.customTimerMinutes} minutes',
-                                          style: TextStyle(fontSize: 11, color: subtitleColor),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Time Picker Modal Button
-                                  ScaleButton(
-                                    onTap: () => _showCustomSleepTimerSheet(context, audioNotifier, isSi, isDark),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: (isDark ? const Color(0xFF5ED1C7) : const Color(0xFF0C4648)).withValues(alpha: 0.25),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.edit_calendar_rounded, size: 13, color: textColor),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            isSi ? 'වේලාව තෝරන්න' : 'Pick Time',
-                                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textColor),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-
-                              // Interactive Live Slider on Card (5 to 180 Minutes)
-                              Row(
-                                children: [
-                                  Text(
-                                    '5m',
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: subtitleColor),
-                                  ),
-                                  Expanded(
-                                    child: SliderTheme(
-                                      data: SliderThemeData(
-                                        trackHeight: 4,
-                                        activeTrackColor: textColor,
-                                        inactiveTrackColor: textColor.withValues(alpha: 0.15),
-                                        thumbColor: textColor,
-                                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-                                      ),
-                                      child: Slider(
-                                        value: audioNotifier.customTimerMinutes.toDouble().clamp(5.0, 180.0),
-                                        min: 5,
-                                        max: 180,
-                                        divisions: 35,
-                                        onChanged: (val) {
-                                          audioNotifier.setCustomMinutes(val.round());
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '180m',
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: subtitleColor),
-                                  ),
-                                ],
-                              ),
-
-                              // Quick Direct Minute Buttons Row
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: [10, 20, 30, 45, 60, 90, 120].map((mins) {
-                                  final isCurrent = audioNotifier.selectedPreset == SleepTimerPreset.custom &&
-                                      audioNotifier.customTimerMinutes == mins;
-                                  return ScaleButton(
-                                    onTap: () {
-                                      audioNotifier.setCustomMinutes(mins);
-                                    },
-                                    child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 150),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: isCurrent
-                                            ? textColor
-                                            : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.06),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: isCurrent
-                                              ? textColor
-                                              : (isDark ? Colors.white12 : const Color(0xFF0C4648)).withValues(alpha: 0.15),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        isSi ? '$mins මි' : '$mins m',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
-                                          color: isCurrent
-                                              ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
-                                              : textColor,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        // Sleep Timer Presets Row (Custom is placed FIRST for instant visibility!)
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              // 1. Custom Button First
-                              Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ScaleButton(
-                                  onTap: () => _showCustomSleepTimerSheet(context, audioNotifier, isSi, isDark),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 180),
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                                    decoration: BoxDecoration(
-                                      color: audioNotifier.selectedPreset == SleepTimerPreset.custom
-                                          ? textColor
-                                          : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.08),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: audioNotifier.selectedPreset == SleepTimerPreset.custom
-                                            ? textColor
-                                            : (isDark ? Colors.white24 : const Color(0xFF0C4648)).withValues(alpha: 0.25),
-                                        width: 1.3,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.access_time_filled_rounded,
-                                          size: 13,
-                                          color: audioNotifier.selectedPreset == SleepTimerPreset.custom
-                                              ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
-                                              : textColor,
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          isSi
-                                              ? 'කැමති (${audioNotifier.customTimerMinutes}මි) ✏️'
-                                              : 'Custom (${audioNotifier.customTimerMinutes}m) ✏️',
-                                          style: TextStyle(
-                                            color: audioNotifier.selectedPreset == SleepTimerPreset.custom
-                                                ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
-                                                : textColor,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                            Expanded(
+                              child: SliderTheme(
+                                data: SliderThemeData(
+                                  trackHeight: 3.5,
+                                  activeTrackColor: textColor,
+                                  inactiveTrackColor: textColor.withValues(alpha: 0.12),
+                                  thumbColor: textColor,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                ),
+                                child: Slider(
+                                  value: audioNotifier.customTimerMinutes.toDouble().clamp(5.0, 180.0),
+                                  min: 5,
+                                  max: 180,
+                                  divisions: 35,
+                                  onChanged: (val) {
+                                    audioNotifier.setCustomMinutes(val.round());
+                                  },
                                 ),
                               ),
+                            ),
+                            Text(
+                              '180m',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: subtitleColor),
+                            ),
+                          ],
+                        ),
 
-                              // 2. Standard Presets (15m, 30m, 45m, 60m, All Night)
+                        const SizedBox(height: 6),
+
+                        // Sleep Timer Presets Row (Clean pills)
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children: [
                               ...[
                                 SleepTimerPreset.min15,
                                 SleepTimerPreset.min30,
@@ -595,16 +464,16 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                                     },
                                     child: AnimatedContainer(
                                       duration: const Duration(milliseconds: 180),
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
                                       decoration: BoxDecoration(
                                         color: isSelected
                                             ? textColor
                                             : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.06),
-                                        borderRadius: BorderRadius.circular(14),
+                                        borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color: isSelected
                                               ? textColor
-                                              : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.15),
+                                              : (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.14),
                                           width: 1.2,
                                         ),
                                       ),
@@ -614,7 +483,7 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                                           color: isSelected
                                               ? (isDark ? const Color(0xFF0B1F23) : Colors.white)
                                               : textColor,
-                                          fontSize: 12,
+                                          fontSize: 11.5,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -963,8 +832,8 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                     ),
                   ],
 
-                  // Space for floating bottom glass dock
-                  const SizedBox(height: 110),
+                  // Space for floating bottom glass dock & mini player
+                  const SizedBox(height: 130),
                 ],
               ),
             ),

@@ -48,22 +48,27 @@ class HomeScreen extends ConsumerWidget {
     final goldAmber = const Color(0xFFFFAE85);
     final isSi = settingsState.isSinhala;
 
-    // Active soundtrack resolution
-    final lastSoundId = settingsState.lastUsedSoundId;
-    final SoundTrack heroSound;
-    if (customSounds.isNotEmpty) {
-      heroSound = customSounds.firstWhere(
-        (t) => t.id == lastSoundId,
-        orElse: () => customSounds.first,
-      );
-    } else {
-      heroSound = SoundTrack.defaultTracks.firstWhere(
-        (t) => t.id == lastSoundId,
-        orElse: () => SoundTrack.defaultTracks[2], // Rainfall by default
-      );
+    // On first launch, if user has personalized sounds and player is idle at default track, sync with personalized sound
+    if (customSounds.isNotEmpty &&
+        !audioNotifier.isPlaying &&
+        audioNotifier.currentTrack.id == SoundTrack.defaultTracks[2].id &&
+        settingsState.lastUsedSoundId != SoundTrack.defaultTracks[2].id) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!audioNotifier.isPlaying &&
+            audioNotifier.currentTrack.id == SoundTrack.defaultTracks[2].id &&
+            customSounds.isNotEmpty) {
+          final target = customSounds.firstWhere(
+            (t) => t.id == settingsState.lastUsedSoundId,
+            orElse: () => customSounds.first,
+          );
+          audioNotifier.selectTrack(target);
+        }
+      });
     }
 
-    final isHeroPlaying = audioNotifier.isPlaying && audioNotifier.currentTrack.id == heroSound.id;
+    // Active soundtrack resolution: Both Hero Card and Mini Audio Player must ALWAYS be 100% in sync!
+    final heroSound = audioNotifier.currentTrack;
+    final isHeroPlaying = audioNotifier.isPlaying;
     final isGuest = user == null || user.isGuest;
     final displayName = (!isGuest && user.name.trim().isNotEmpty) ? user.name.trim() : (isSi ? 'යහළුවා' : 'Friend');
 
@@ -299,34 +304,28 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: 18),
 
                     // =========================================================
-                    // 3. ⭐ HERO NATURE SOUND PLAYER CARD (Instant Appeal)
+                    // 3. ⭐ HERO NATURE SOUND PLAYER CARD (Frosted Glass Sanctuary)
                     // =========================================================
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: isDark
-                              ? [
-                                  const Color(0xFF0F3237),
-                                  const Color(0xFF134248),
-                                  const Color(0xFF1A585F),
-                                ]
-                              : [
-                                  const Color(0xFF0C4648),
-                                  const Color(0xFF125659),
-                                  const Color(0xFF1A6B6F),
-                                ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(28),
-                        boxShadow: [
-                          BoxShadow(
-                            color: primaryTeal.withValues(alpha: isDark ? 0.5 : 0.28),
-                            blurRadius: 22,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
+                    GlassCard(
+                      borderRadius: 28,
+                      blur: 20,
+                      padding: const EdgeInsets.all(22),
+                      margin: EdgeInsets.zero,
+                      borderColor: Colors.white.withValues(alpha: isDark ? 0.18 : 0.45),
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [
+                                const Color(0xFF0F3237).withValues(alpha: 0.92),
+                                const Color(0xFF134248).withValues(alpha: 0.88),
+                                const Color(0xFF1A585F).withValues(alpha: 0.90),
+                              ]
+                            : [
+                                const Color(0xFF0C4648).withValues(alpha: 0.95),
+                                const Color(0xFF125659).withValues(alpha: 0.90),
+                                const Color(0xFF1A6B6F).withValues(alpha: 0.92),
+                              ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                       child: Stack(
                         children: [
@@ -341,11 +340,9 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ),
 
-                          Padding(
-                            padding: const EdgeInsets.all(22.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                                 // Top Tag & Visualizer
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -546,10 +543,9 @@ class HomeScreen extends ConsumerWidget {
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
 
                     const SizedBox(height: 22),
 
