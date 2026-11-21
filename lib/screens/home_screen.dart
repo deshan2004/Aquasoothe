@@ -97,9 +97,6 @@ class HomeScreen extends ConsumerWidget {
     final allMedsTaken = medicationList.isNotEmpty && medicationList.every((m) => m.isTakenToday);
     final takenMedsCount = medicationList.where((m) => m.isTakenToday).length;
 
-    // Quick Nature Sounds (4 most popular)
-    final quickSounds = SoundTrack.defaultTracks.take(4).toList();
-
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
@@ -435,97 +432,113 @@ class HomeScreen extends ConsumerWidget {
                                 Row(
                                   children: [
                                     // Big Play / Pause Button
-                                    ScaleButton(
-                                      onTap: () async {
-                                        HapticFeedback.mediumImpact();
-                                        if (isHeroPlaying) {
-                                          await audioNotifier.pause();
-                                        } else {
-                                          await audioNotifier.selectTrack(heroSound);
-                                          await audioNotifier.play();
-                                        }
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                        decoration: BoxDecoration(
-                                          gradient: const LinearGradient(
-                                            colors: [Color(0xFFFFAE85), Color(0xFFF89966)],
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                          ),
-                                          borderRadius: BorderRadius.circular(20),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: const Color(0xFFFFAE85).withValues(alpha: 0.45),
-                                              blurRadius: 14,
-                                              offset: const Offset(0, 4),
+                                    Expanded(
+                                      flex: 5,
+                                      child: ScaleButton(
+                                        onTap: () async {
+                                          HapticFeedback.mediumImpact();
+                                          if (isHeroPlaying) {
+                                            await audioNotifier.pause();
+                                          } else {
+                                            await audioNotifier.selectTrack(heroSound);
+                                            await audioNotifier.play();
+                                          }
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [Color(0xFFFFAE85), Color(0xFFF89966)],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
                                             ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              isHeroPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                              color: const Color(0xFF4D2411),
-                                              size: 26,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              isHeroPlaying
-                                                  ? (isSi ? 'නවතන්න' : 'Pause')
-                                                  : (isSi ? 'අසන්න' : 'Play Sound'),
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF4D2411),
+                                            borderRadius: BorderRadius.circular(20),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFFFFAE85).withValues(alpha: 0.45),
+                                                blurRadius: 14,
+                                                offset: const Offset(0, 4),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                isHeroPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                                color: const Color(0xFF4D2411),
+                                                size: 24,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Flexible(
+                                                child: Text(
+                                                  isHeroPlaying
+                                                      ? (isSi ? 'නවතන්න' : 'Pause')
+                                                      : (isSi ? 'අසන්න' : 'Play Sound'),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontSize: 14.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF4D2411),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
 
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: 10),
 
                                     // Sleep Timer & Studio Button
-                                    ScaleButton(
-                                      onTap: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          shape: const RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-                                          ),
-                                          builder: (_) => const UnifiedSoundStudioSheet(),
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.14),
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(
-                                            color: Colors.white.withValues(alpha: 0.25),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(Icons.tune_rounded, color: Colors.white, size: 18),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              audioNotifier.secondsRemaining > 0
-                                                  ? audioNotifier.formattedTimeRemaining
-                                                  : (isSi ? 'Mixer & Timer' : 'Mixer & Timer'),
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
+                                    Expanded(
+                                      flex: 5,
+                                      child: ScaleButton(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            backgroundColor: Colors.transparent,
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
                                             ),
-                                          ],
+                                            builder: (_) => const UnifiedSoundStudioSheet(),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.14),
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: Colors.white.withValues(alpha: 0.25),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.tune_rounded, color: Colors.white, size: 18),
+                                              const SizedBox(width: 6),
+                                              Flexible(
+                                                child: Text(
+                                                  audioNotifier.secondsRemaining > 0
+                                                      ? audioNotifier.formattedTimeRemaining
+                                                      : (isSi ? 'මික්සර් / ටයිමර්' : 'Mixer & Timer'),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -538,155 +551,24 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
                     // =========================================================
-                    // 4. 🌊 QUICK NATURE SOUNDS (One-Tap Instant Play)
+                    // 4. 🌿 DAILY WELLNESS & ROUTINES (Clean, Clear Cards)
                     // =========================================================
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          isSi ? 'ක්ෂණික ස්වභාවික නාද' : 'Quick Soundscapes',
+                          isSi ? 'දෛනික සුවතා සත්කාර' : 'Daily Wellness & Habits',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 19,
                             fontWeight: FontWeight.bold,
                             color: textColor,
-                          ),
-                        ),
-                        ScaleButton(
-                          onTap: () {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (_) => const MainNavigationScreen(initialIndex: 1),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Text(
-                                  isSi ? 'සියල්ල' : 'See all',
-                                  style: TextStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? const Color(0xFF5ED1C7) : primaryTeal,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 18,
-                                  color: isDark ? const Color(0xFF5ED1C7) : primaryTeal,
-                                ),
-                              ],
-                            ),
+                            letterSpacing: -0.2,
                           ),
                         ),
                       ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // 4 Sound Cards Row
-                    Row(
-                      children: quickSounds.map((track) {
-                        final isThisTrackPlaying = audioNotifier.isPlaying && audioNotifier.currentTrack.id == track.id;
-
-                        return Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                            child: ScaleButton(
-                              onTap: () async {
-                                HapticFeedback.selectionClick();
-                                ref.read(settingsProvider.notifier).setLastUsedSoundId(track.id);
-                                if (isThisTrackPlaying) {
-                                  await audioNotifier.pause();
-                                } else {
-                                  await audioNotifier.selectTrack(track);
-                                  await audioNotifier.play();
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: isThisTrackPlaying
-                                      ? goldAmber.withValues(alpha: isDark ? 0.25 : 0.2)
-                                      : (isDark ? const Color(0xFF13272C) : Colors.white),
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                    color: isThisTrackPlaying
-                                        ? const Color(0xFFF89966)
-                                        : (isDark ? Colors.white.withValues(alpha: 0.1) : primaryTeal.withValues(alpha: 0.12)),
-                                    width: isThisTrackPlaying ? 1.8 : 1.0,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: isThisTrackPlaying
-                                            ? goldAmber
-                                            : (isDark ? Colors.white.withValues(alpha: 0.08) : primaryTeal.withValues(alpha: 0.08)),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        isThisTrackPlaying ? Icons.pause_rounded : track.icon,
-                                        size: 20,
-                                        color: isThisTrackPlaying
-                                            ? const Color(0xFF4D2411)
-                                            : (isDark ? const Color(0xFF5ED1C7) : primaryTeal),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      track.title
-                                          .replaceAll('Soothing ', '')
-                                          .replaceAll('Cascading ', '')
-                                          .replaceAll('Deep ', ''),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: isThisTrackPlaying
-                                            ? (isDark ? goldAmber : const Color(0xFFB45309))
-                                            : textColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-
-                    const SizedBox(height: 26),
-
-                    // =========================================================
-                    // 5. 🌿 DAILY WELLNESS & ROUTINES (Clean, Clear Cards)
-                    // =========================================================
-                    Text(
-                      isSi ? 'දෛනික සුවතා සත්කාර' : 'Daily Wellness & Habits',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -1058,8 +940,8 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // Extra bottom space for floating nav bar
-                    const SizedBox(height: 100),
+                    // Extra bottom space for floating nav bar & mini player
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
