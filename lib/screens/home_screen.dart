@@ -6,6 +6,7 @@ import '../models/sound_model.dart';
 import '../models/medication_model.dart';
 import '../providers/hydration_provider.dart';
 import '../providers/audio_provider.dart';
+import '../services/audio_service.dart';
 import '../providers/settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/medication_provider.dart';
@@ -21,6 +22,7 @@ import '../widgets/medication_schedule_sheet.dart';
 import '../widgets/gentle_alarm_sheet.dart';
 import '../widgets/weather_hydration_sheet.dart';
 import '../widgets/unified_sound_studio_sheet.dart';
+import '../widgets/sleep_rating_dialog.dart';
 import 'main_navigation_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -550,6 +552,150 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: 22),
 
                     // =========================================================
+                    // 3.5 🌙 1-TAP NIGHT WIND-DOWN ROUTINE (Bedtime Ritual)
+                    // =========================================================
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isDark
+                              ? [
+                                  const Color(0xFF1E3A5F).withValues(alpha: 0.7),
+                                  const Color(0xFF0F2027).withValues(alpha: 0.85),
+                                ]
+                              : [
+                                  const Color(0xFFE0F2FE),
+                                  const Color(0xFFBAE6FD),
+                                ],
+                        ),
+                        border: Border.all(
+                          color: const Color(0xFF70D6CE).withValues(alpha: 0.35),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF38BDF8).withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.nightlight_round, color: Color(0xFF38BDF8), size: 22),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isSi ? 'රාත්‍රී සුව නින්ද පුරුද්ද' : 'Night Wind-Down Routine',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: textColor,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        isSi
+                                            ? 'ශ්වසන අභ්‍යාසය • සුව නින්දේ නාද • 30m ටයිමරය'
+                                            : '4-7-8 Breathing • Relaxing Sound • 30m Fade Timer',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: subtitleColor,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            ScaleButton(
+                              onTap: () {
+                                HapticFeedback.mediumImpact();
+                                audioNotifier.play();
+                                audioNotifier.setTimerPreset(SleepTimerPreset.min30);
+                                showBreathingExerciseModal(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.bedtime_rounded, color: Color(0xFF70D6CE)),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            isSi
+                                                ? '🌙 සුව නින්ද සක්‍රියයි: ශබ්දය සහ මිනිත්තු 30 ටයිමරය ඇරඹුණා!'
+                                                : '🌙 Wind-down activated: 30m sleep sound & breathing ready!',
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: primaryTeal,
+                                    duration: const Duration(seconds: 3),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF0284C7), Color(0xFF0369A1)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      isSi ? 'සුව නින්ද ඇරඹුම (1-Tap Routine)' : 'Start Sleep Ritual (1-Tap Routine)',
+                                      style: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // =========================================================
                     // 4. 🌿 DAILY WELLNESS & ROUTINES (Clean, Clear Cards)
                     // =========================================================
                     Row(
@@ -638,58 +784,164 @@ class HomeScreen extends ConsumerWidget {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          // Quick 1-Tap Drink 250ml Button
-                          ScaleButton(
-                            onTap: () async {
-                              HapticFeedback.mediumImpact();
-                              await ref.read(hydrationProvider.notifier).logWater(250);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Row(
+                          // Multi-Cup Quick Log Chips (+150ml, +250ml, +500ml)
+                          Row(
+                            children: [
+                              // 150ml Cup
+                              Expanded(
+                                child: ScaleButton(
+                                  onTap: () async {
+                                    HapticFeedback.mediumImpact();
+                                    await ref.read(hydrationProvider.notifier).logWater(150);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            isSi ? '☕ වතුර 150ml (කෝප්පය) සටහන් කළා!' : '☕ Logged 150ml cup of water!',
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                          backgroundColor: primaryTeal,
+                                          duration: const Duration(seconds: 2),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                                    decoration: BoxDecoration(
+                                      color: (isDark ? const Color(0xFF132B32) : const Color(0xFFF0F9FF)),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.check_circle_rounded, color: Color(0xFF70D6CE)),
-                                        const SizedBox(width: 8),
+                                        const Icon(Icons.coffee_rounded, size: 16, color: Color(0xFF0284C7)),
+                                        const SizedBox(height: 3),
                                         Text(
-                                          isSi ? '💧 වතුර 250ml සටහන් කළා!' : '💧 Logged 250ml of water!',
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                          isSi ? '+150ml කෝප්පය' : '+150ml Cup',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF0284C7),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    backgroundColor: primaryTeal,
-                                    duration: const Duration(seconds: 2),
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 11),
-                              decoration: BoxDecoration(
-                                color: (isDark ? const Color(0xFF163238) : const Color(0xFFE0F2FE)),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: const Color(0xFF0284C7).withValues(alpha: 0.3),
                                 ),
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.add_rounded, size: 18, color: Color(0xFF0284C7)),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    isSi ? 'වතුර වීදුරුවක් බොන්න (+250ml)' : 'Drink a Glass of Water (+250ml)',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0284C7),
+                              const SizedBox(width: 8),
+                              // 250ml Glass (Primary Highlight)
+                              Expanded(
+                                flex: 1,
+                                child: ScaleButton(
+                                  onTap: () async {
+                                    HapticFeedback.mediumImpact();
+                                    await ref.read(hydrationProvider.notifier).logWater(250);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            isSi ? '🥛 වතුර 250ml (වීදුරුව) සටහන් කළා!' : '🥛 Logged 250ml glass of water!',
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                          backgroundColor: primaryTeal,
+                                          duration: const Duration(seconds: 2),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                                    decoration: BoxDecoration(
+                                      color: (isDark ? const Color(0xFF0284C7).withValues(alpha: 0.3) : const Color(0xFFE0F2FE)),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: const Color(0xFF0284C7).withValues(alpha: 0.6),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.local_drink_rounded, size: 16, color: Color(0xFF0284C7)),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          isSi ? '+250ml වීදුරුව' : '+250ml Glass',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF0284C7),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              // 500ml Bottle
+                              Expanded(
+                                child: ScaleButton(
+                                  onTap: () async {
+                                    HapticFeedback.mediumImpact();
+                                    await ref.read(hydrationProvider.notifier).logWater(500);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            isSi ? '🍶 වතුර 500ml (බෝතලය) සටහන් කළා!' : '🍶 Logged 500ml bottle of water!',
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                          backgroundColor: primaryTeal,
+                                          duration: const Duration(seconds: 2),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                                    decoration: BoxDecoration(
+                                      color: (isDark ? const Color(0xFF132B32) : const Color(0xFFF0F9FF)),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.water_rounded, size: 16, color: Color(0xFF0284C7)),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          isSi ? '+500ml බෝතලය' : '+500ml Bottle',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF0284C7),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -832,54 +1084,94 @@ class HomeScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(18),
                       margin: const EdgeInsets.only(bottom: 12),
                       onTap: () => showGentleAlarmModal(context),
-                      child: Row(
+                      child: Column(
                         children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(Icons.alarm_rounded, color: Color(0xFFD97706), size: 24),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isSi ? 'මෘදු ස්වභාවික ඇලාමය' : 'Gentle Wake-Up Alarm',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor,
-                                  ),
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  isSi
-                                      ? 'වේලාව ${alarmState.formattedTime} • සෙමෙන් වැඩිවන ශබ්දය'
-                                      : 'Wake at ${alarmState.formattedTime} • Gentle Fade-In',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    color: subtitleColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                child: const Icon(Icons.alarm_rounded, color: Color(0xFFD97706), size: 24),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isSi ? 'මෘදු ස්වභාවික ඇලාමය' : 'Gentle Wake-Up Alarm',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      isSi
+                                          ? 'වේලාව ${alarmState.formattedTime} • සෙමෙන් වැඩිවන ශබ්දය'
+                                          : 'Wake at ${alarmState.formattedTime} • Gentle Fade-In',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        color: subtitleColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 8),
+                              Switch.adaptive(
+                                value: alarmState.isEnabled,
+                                activeTrackColor: const Color(0xFFD97706),
+                                onChanged: (val) {
+                                  HapticFeedback.selectionClick();
+                                  alarmNotifier.toggleAlarm(val);
+                                },
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Switch.adaptive(
-                            value: alarmState.isEnabled,
-                            activeTrackColor: const Color(0xFFD97706),
-                            onChanged: (val) {
-                              HapticFeedback.selectionClick();
-                              alarmNotifier.toggleAlarm(val);
+                          const SizedBox(height: 12),
+                          ScaleButton(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              showDialog(
+                                context: context,
+                                builder: (_) => const SleepRatingDialog(),
+                              );
                             },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.18 : 0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.star_rounded, size: 16, color: Color(0xFFD97706)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    isSi ? 'උදෑසන නින්දේ සුවතාවය සටහන් කරන්න' : 'Log Morning Sleep Rating',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFD97706),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
