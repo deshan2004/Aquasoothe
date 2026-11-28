@@ -54,6 +54,11 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     state = updated;
   }
 
+  Future<void> updateProfilePhoto(String? photoPath) async {
+    final updated = await _repository.updateProfilePhoto(photoPath);
+    state = updated;
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     state = null;

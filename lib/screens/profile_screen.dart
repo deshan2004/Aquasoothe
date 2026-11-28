@@ -1,10 +1,15 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/hydration_provider.dart';
 import '../widgets/aquasoothe_header.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/scale_button.dart';
 import 'auth_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -17,6 +22,199 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _quietHoursEnabled = false;
   bool _caregiverSharingEnabled = true;
+
+  Future<void> _pickAndSavePhoto(BuildContext context, bool isSi) async {
+    try {
+      final files = await FilePicker.pickFiles(
+        type: FileType.image,
+      );
+
+      if (files.isNotEmpty && files.first.path != null) {
+        final pickedPath = files.first.path!;
+        final rawFile = File(pickedPath);
+        final rawName = files.first.name;
+        final docDir = await getApplicationDocumentsDirectory();
+        final ext = rawName.contains('.') ? rawName.split('.').last : 'jpg';
+        final savedFile = File('${docDir.path}/profile_avatar_${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+        final bytes = await rawFile.readAsBytes();
+        await savedFile.writeAsBytes(bytes);
+
+        await ref.read(authProvider.notifier).updateProfilePhoto(savedFile.path);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Color(0xFF70D6CE)),
+                  const SizedBox(width: 8),
+                  Text(
+                    isSi ? 'පැතිකඩ ඡායාරූපය යාවත්කාලීන කළා!' : 'Profile photo updated successfully!',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF0C4648),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isSi ? 'ඡායාරූපය තේරීම අසාර්ථක විය' : 'Failed to pick image: $e',
+            ),
+            backgroundColor: Colors.red.shade800,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPhotoPickerModal(BuildContext context, bool isSi) {
+    final user = ref.read(authProvider);
+    final hasPhoto = user?.photoPath != null && user!.photoPath!.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 36),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF13272C).withValues(alpha: 0.94) : Colors.white.withValues(alpha: 0.95),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(
+                color: isDark ? Colors.white12 : Colors.black12,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  isSi ? 'පැතිකඩ ඡායාරූපය' : 'Profile Photo',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isSi ? 'ඔබගේ ගිණුමට නව ඡායාරූපයක් එක් කරන්න හෝ වෙනස් කරන්න' : 'Add or update your personal account photo',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Option 1: Choose from Photos
+                ScaleButton(
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    await _pickAndSavePhoto(context, isSi);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0C4648),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.photo_library_rounded, color: Colors.white, size: 20),
+                        const SizedBox(width: 10),
+                        Text(
+                          isSi ? 'ගැලරියෙන් ඡායාරූපයක් තෝරන්න' : 'Choose from Photos',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                if (hasPhoto) ...[
+                  const SizedBox(height: 12),
+                  // Option 2: Remove Photo
+                  ScaleButton(
+                    onTap: () async {
+                      Navigator.of(ctx).pop();
+                      await ref.read(authProvider.notifier).updateProfilePhoto(null);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isSi ? 'ඡායාරූපය ඉවත් කළා' : 'Profile photo removed',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            backgroundColor: const Color(0xFF0C4648),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            isSi ? 'ඡායාරූපය ඉවත් කරන්න' : 'Remove Photo',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,34 +328,93 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       children: [
                         Row(
                           children: [
-                            // Avatar with glowing ring
-                            Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF0C4648), Color(0xFF1E676B)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF0C4648).withValues(alpha: 0.3),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 4),
+                            // Interactive Avatar with photo upload & camera badge
+                            ScaleButton(
+                              onTap: () => _showPhotoPickerModal(context, isSi),
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    width: 76,
+                                    height: 76,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFF0C4648), Color(0xFF1E676B)],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      border: Border.all(
+                                        color: const Color(0xFF70D6CE).withValues(alpha: 0.6),
+                                        width: 2.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF0C4648).withValues(alpha: 0.35),
+                                          blurRadius: 16,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child: (user?.photoPath != null &&
+                                              user!.photoPath!.isNotEmpty &&
+                                              File(user.photoPath!).existsSync())
+                                          ? Image.file(
+                                              File(user.photoPath!),
+                                              width: 76,
+                                              height: 76,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) => Center(
+                                                child: Text(
+                                                  initialLetter,
+                                                  style: const TextStyle(
+                                                    fontSize: 30,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          : Center(
+                                              child: Text(
+                                                initialLetter,
+                                                style: const TextStyle(
+                                                  fontSize: 30,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0284C7),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 2,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.25),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt_rounded,
+                                        size: 14,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
                                 ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  initialLetter,
-                                  style: const TextStyle(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
                               ),
                             ),
                             const SizedBox(width: 18),

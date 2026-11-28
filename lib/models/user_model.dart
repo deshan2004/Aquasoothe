@@ -4,6 +4,7 @@ class UserModel {
   final String email;
   final bool isGuest;
   final String? gender;
+  final String? photoPath;
   final DateTime createdAt;
 
   UserModel({
@@ -12,6 +13,7 @@ class UserModel {
     required this.email,
     this.isGuest = false,
     this.gender,
+    this.photoPath,
     required this.createdAt,
   });
 
@@ -21,6 +23,8 @@ class UserModel {
     String? email,
     bool? isGuest,
     String? gender,
+    String? photoPath,
+    bool clearPhoto = false,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -29,6 +33,7 @@ class UserModel {
       email: email ?? this.email,
       isGuest: isGuest ?? this.isGuest,
       gender: gender ?? this.gender,
+      photoPath: clearPhoto ? null : (photoPath ?? this.photoPath),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -39,6 +44,7 @@ class UserModel {
         'email': email,
         'isGuest': isGuest,
         'gender': gender,
+        'photoPath': photoPath,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -61,6 +67,7 @@ class UserModel {
       email: (json['email'] ?? '') as String,
       isGuest: json['isGuest'] as bool? ?? false,
       gender: json['gender'] as String?,
+      photoPath: json['photoPath'] as String?,
       createdAt: parseDate(json['createdAt']),
     );
   }

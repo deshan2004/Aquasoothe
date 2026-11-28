@@ -22,11 +22,26 @@ class AuthRepository {
     try {
       final fbUser = _firebaseAuth.currentUser;
       if (fbUser != null && !fbUser.isAnonymous) {
+        final rawJson = _prefs.getString(_userKey);
+        String? localPhotoPath;
+        String? localGender;
+        if (rawJson != null && rawJson.isNotEmpty) {
+          try {
+            final local = UserModel.fromJson(jsonDecode(rawJson));
+            if (local.id == fbUser.uid) {
+              localPhotoPath = local.photoPath;
+              localGender = local.gender;
+            }
+          } catch (_) {}
+        }
+
         return UserModel(
           id: fbUser.uid,
           name: fbUser.displayName ?? 'User',
           email: fbUser.email ?? '',
           isGuest: false,
+          gender: localGender,
+          photoPath: localPhotoPath,
           createdAt: fbUser.metadata.creationTime ?? DateTime.now(),
         );
       }
@@ -309,6 +324,32 @@ class AuthRepository {
       if (fbUser != null) {
         await _firestore.collection('users').doc(fbUser.uid).set(
           {'gender': gender},
+          SetOptions(merge: true),
+        );
+      }
+    } catch (_) {}
+
+    await _prefs.setString(_userKey, jsonEncode(updated.toJson()));
+    return updated;
+  }
+
+  Future<UserModel> updateProfilePhoto(String? photoPath) async {
+    final currentUser = getCurrentUser();
+    final updated = (currentUser ?? UserModel(
+      id: _firebaseAuth.currentUser?.uid ?? 'user',
+      name: _firebaseAuth.currentUser?.displayName ?? 'User',
+      email: _firebaseAuth.currentUser?.email ?? '',
+      createdAt: DateTime.now(),
+    )).copyWith(
+      photoPath: photoPath,
+      clearPhoto: photoPath == null,
+    );
+
+    try {
+      final fbUser = _firebaseAuth.currentUser;
+      if (fbUser != null) {
+        await _firestore.collection('users').doc(fbUser.uid).set(
+          {'photoPath': photoPath},
           SetOptions(merge: true),
         );
       }
