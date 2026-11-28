@@ -178,20 +178,20 @@ class WeatherHydrationSheet extends ConsumerWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          heatOrange.withValues(alpha: isDark ? 0.25 : 0.15),
-                          coral.withValues(alpha: isDark ? 0.15 : 0.08),
+                          const Color(0xFF0284C7).withValues(alpha: isDark ? 0.25 : 0.12),
+                          const Color(0xFF0C4648).withValues(alpha: isDark ? 0.20 : 0.08),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: heatOrange.withValues(alpha: 0.4),
+                        color: const Color(0xFF0284C7).withValues(alpha: 0.35),
                         width: 1.2,
                       ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.my_location_rounded, size: 16, color: heatOrange),
+                        const Icon(Icons.my_location_rounded, size: 16, color: Color(0xFF0284C7)),
                         const SizedBox(width: 8),
                         Text(
                           isSi ? 'මගේ සජීවී ස්ථානය සහ කාලගුණය Track කරන්න' : 'Track My Live Location & Weather',
@@ -567,8 +567,8 @@ class WeatherHydrationSheet extends ConsumerWidget {
                 ),
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: heatOrange,
-                    thumbColor: heatOrange,
+                    activeTrackColor: const Color(0xFF0284C7),
+                    thumbColor: const Color(0xFF0284C7),
                     inactiveTrackColor: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.15),
                     trackHeight: 6,
                     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
