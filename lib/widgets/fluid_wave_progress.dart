@@ -78,18 +78,22 @@ class _FluidWaveProgressState extends State<FluidWaveProgress> with SingleTicker
             child: SizedBox(
               width: innerW,
               height: innerH,
-              child: AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return CustomPaint(
-                    size: Size(innerW, innerH),
-                    painter: WavePainter(
-                      animationValue: _animationController.value,
-                      percentage: widget.percentage,
-                      isGoalMet: widget.isGoalMet,
-                    ),
-                  );
-                },
+              child: ExcludeSemantics(
+                child: RepaintBoundary(
+                  child: AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        size: Size(innerW, innerH),
+                        painter: WavePainter(
+                          animationValue: _animationController.value,
+                          percentage: widget.percentage,
+                          isGoalMet: widget.isGoalMet,
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ),

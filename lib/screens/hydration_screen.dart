@@ -156,9 +156,9 @@ class HydrationScreen extends ConsumerWidget {
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: const Color(0xFFFF7E47).withValues(alpha: 0.2),
+                                color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                               ),
-                              child: const Icon(Icons.thermostat_rounded, color: Color(0xFFFF7E47), size: 20),
+                              child: const Icon(Icons.thermostat_rounded, color: Color(0xFF0284C7), size: 20),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -183,7 +183,7 @@ class HydrationScreen extends ConsumerWidget {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFFF7E47).withValues(alpha: 0.2),
+                                          color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
@@ -191,7 +191,7 @@ class HydrationScreen extends ConsumerWidget {
                                           style: const TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFFFF7E47),
+                                            color: Color(0xFF0284C7),
                                           ),
                                         ),
                                       ),
@@ -228,9 +228,9 @@ class HydrationScreen extends ConsumerWidget {
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: const Color(0xFFFFAE85).withValues(alpha: 0.2),
+                                color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                               ),
-                              child: const Icon(Icons.medication_rounded, color: Color(0xFFE67E33), size: 20),
+                              child: const Icon(Icons.medication_rounded, color: Color(0xFF0284C7), size: 20),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -284,24 +284,27 @@ class HydrationScreen extends ConsumerWidget {
                                   }
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFFFFAE85), Color(0xFFF89966)],
+                                      colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
                                     ),
                                     borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: const Color(0xFF70D6CE).withValues(alpha: 0.4),
+                                    ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.check_rounded, size: 14, color: Color(0xFF4D2411)),
+                                      const Icon(Icons.check_rounded, size: 14, color: Colors.white),
                                       const SizedBox(width: 4),
                                       Text(
                                         isSi ? 'බිව්වා' : 'Take',
                                         style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF4D2411),
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ],

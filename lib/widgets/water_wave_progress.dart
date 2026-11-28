@@ -61,19 +61,23 @@ class _WaterWaveProgressState extends State<WaterWaveProgress> with SingleTicker
         borderRadius: BorderRadius.circular(24),
         child: Stack(
           children: [
-            // Wave animation painter
-            AnimatedBuilder(
-              animation: _animController,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: Size(double.infinity, widget.height),
-                  painter: _WaterWavePainter(
-                    progress: clampedProgress,
-                    animationValue: _animController.value,
-                    waveColor: widget.waveColor,
-                  ),
-                );
-              },
+            // Wave animation painter (exclude from semantics and isolate in repaint boundary to prevent semantics parentDataDirty assertions)
+            ExcludeSemantics(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _animController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      size: Size(double.infinity, widget.height),
+                      painter: _WaterWavePainter(
+                        progress: clampedProgress,
+                        animationValue: _animController.value,
+                        waveColor: widget.waveColor,
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
 
             // Foreground child content overlay

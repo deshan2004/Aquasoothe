@@ -209,7 +209,7 @@ class MiniAudioPlayerBar extends ConsumerWidget {
                           onTap: () => showGentleAlarmModal(context),
                           child: Row(
                             children: [
-                              const Icon(Icons.alarm_on_rounded, color: Color(0xFFFFAE85), size: 14),
+                              const Icon(Icons.alarm_on_rounded, color: Color(0xFF70D6CE), size: 14),
                               const SizedBox(width: 5),
                               Flexible(
                                 child: Text(
@@ -243,7 +243,7 @@ class MiniAudioPlayerBar extends ConsumerWidget {
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFFFAE85),
+                              color: Color(0xFF70D6CE),
                             ),
                           ),
                         ),
@@ -339,7 +339,7 @@ class MiniAudioPlayerBar extends ConsumerWidget {
                         },
                         icon: Icon(
                           isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
-                          color: const Color(0xFFF8AB80),
+                          color: const Color(0xFF70D6CE),
                           size: 36,
                         ),
                       ),

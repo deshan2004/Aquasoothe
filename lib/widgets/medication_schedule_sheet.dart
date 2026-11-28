@@ -33,7 +33,6 @@ class MedicationScheduleSheet extends ConsumerWidget {
 
     final primaryTeal = const Color(0xFF0C4648);
     final accentTurquoise = const Color(0xFF28A096);
-    final coral = const Color(0xFFFFAE85);
     final takenCount = medications.where((m) => m.isTakenToday).length;
     final totalCount = medications.length;
 
@@ -110,19 +109,19 @@ class MedicationScheduleSheet extends ConsumerWidget {
                                 shape: BoxShape.circle,
                                 gradient: LinearGradient(
                                   colors: [
-                                    coral.withValues(alpha: 0.45),
-                                    const Color(0xFFF89966).withValues(alpha: 0.25),
+                                    const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                    const Color(0xFF0C4648).withValues(alpha: 0.18),
                                   ],
                                 ),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.7),
+                                  color: const Color(0xFF70D6CE).withValues(alpha: 0.5),
                                   width: 1.2,
                                 ),
                               ),
                               child: const Icon(
                                 Icons.medication_rounded,
                                 size: 24,
-                                color: Color(0xFFF89966),
+                                color: Color(0xFF0284C7),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -218,17 +217,17 @@ class MedicationScheduleSheet extends ConsumerWidget {
                               case MedicationPeriod.morning:
                                 periodHeader = isSi ? 'උදෑසන වේලාව' : 'Morning Routine';
                                 periodIcon = Icons.wb_sunny_rounded;
-                                periodColor = const Color(0xFFF89966);
+                                periodColor = const Color(0xFF0284C7);
                                 break;
                               case MedicationPeriod.afternoon:
                                 periodHeader = isSi ? 'දහවල් වේලාව' : 'Afternoon Routine';
                                 periodIcon = Icons.wb_twilight_rounded;
-                                periodColor = const Color(0xFFE5A93B);
+                                periodColor = const Color(0xFF0891B2);
                                 break;
                               case MedicationPeriod.night:
                                 periodHeader = isSi ? 'රාත්‍රී වේලාව' : 'Bedtime Routine';
                                 periodIcon = Icons.nightlight_round;
-                                periodColor = const Color(0xFF4AC4B8);
+                                periodColor = const Color(0xFF14B8A6);
                                 break;
                             }
 
@@ -783,18 +782,18 @@ class MedicationScheduleSheet extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFFFAE85), Color(0xFFF89966)],
+                      colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      width: 1.2,
+                      color: const Color(0xFF70D6CE).withValues(alpha: 0.4),
+                      width: 1.4,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFF8AB80).withValues(alpha: 0.35),
+                        color: const Color(0xFF0C4648).withValues(alpha: 0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -803,14 +802,14 @@ class MedicationScheduleSheet extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.water_drop_rounded, size: 18, color: Color(0xFF4D2411)),
+                      const Icon(Icons.water_drop_rounded, size: 18, color: Colors.white),
                       const SizedBox(width: 6),
                       Text(
                         isSi ? 'බී වතුර 250ml සටහන් කරන්න' : 'Take & Log 250ml Water',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4D2411),
+                          color: Colors.white,
                           letterSpacing: 0.2,
                         ),
                       ),

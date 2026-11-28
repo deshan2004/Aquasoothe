@@ -51,10 +51,11 @@ class _AudioVisualizerState extends State<AudioVisualizer> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: widget.height,
-      width: 45,
-      child: AnimatedBuilder(
+    return ExcludeSemantics(
+      child: SizedBox(
+        height: widget.height,
+        width: 45,
+        child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
           return Row(
@@ -80,6 +81,7 @@ class _AudioVisualizerState extends State<AudioVisualizer> with SingleTickerProv
           );
         },
       ),
+    ),
     );
   }
 }

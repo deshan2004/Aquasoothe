@@ -592,15 +592,19 @@ class WeatherHydrationSheet extends ConsumerWidget {
                     width: double.infinity,
                     height: 52,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [heatOrange, const Color(0xFFFFAE85)],
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF70D6CE).withValues(alpha: 0.4),
+                        width: 1.4,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: heatOrange.withValues(alpha: 0.35),
+                          color: const Color(0xFF0C4648).withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -612,7 +616,7 @@ class WeatherHydrationSheet extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF4D2411),
+                        color: Colors.white,
                       ),
                     ),
                   ),

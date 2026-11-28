@@ -57,31 +57,33 @@ class _SoundVisualizerWidgetState extends State<SoundVisualizerWidget> with Sing
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(widget.barCount, (index) {
-            double value = 0.3;
-            if (widget.isPlaying) {
-              final phase = (index * 0.4) + (_controller.value * 2 * math.pi);
-              value = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(phase));
-            }
+    return ExcludeSemantics(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(widget.barCount, (index) {
+              double value = 0.3;
+              if (widget.isPlaying) {
+                final phase = (index * 0.4) + (_controller.value * 2 * math.pi);
+                value = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(phase));
+              }
 
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 1.5),
-              width: widget.barWidth,
-              height: widget.maxHeight * value,
-              decoration: BoxDecoration(
-                color: widget.color,
-                borderRadius: BorderRadius.circular(widget.barWidth / 2),
-              ),
-            );
-          }),
-        );
-      },
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                width: widget.barWidth,
+                height: widget.maxHeight * value,
+                decoration: BoxDecoration(
+                  color: widget.color,
+                  borderRadius: BorderRadius.circular(widget.barWidth / 2),
+                ),
+              );
+            }),
+          );
+        },
+      ),
     );
   }
 }
