@@ -38,8 +38,6 @@ class WeatherHydrationSheet extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final primaryTeal = const Color(0xFF0C4648);
-    final coral = const Color(0xFFFFAE85);
-    final heatOrange = const Color(0xFFFF7E47);
 
     Color getRiskColor(HeatRiskLevel level) {
       switch (level) {
@@ -450,9 +448,9 @@ class WeatherHydrationSheet extends ConsumerWidget {
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: coral.withValues(alpha: 0.2),
+                          color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                         ),
-                        child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFFFFAE85), size: 20),
+                        child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF0284C7), size: 20),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -479,7 +477,7 @@ class WeatherHydrationSheet extends ConsumerWidget {
                       ),
                       Switch.adaptive(
                         value: weatherState.isSmartAdjustmentEnabled,
-                        activeTrackColor: heatOrange.withValues(alpha: 0.45),
+                        activeTrackColor: const Color(0xFF70D6CE),
                         onChanged: (val) {
                           weatherNotifier.toggleSmartAdjustment(val);
                         },
@@ -652,24 +650,25 @@ class _PresetButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryTeal = const Color(0xFF0C4648);
-    final heatOrange = const Color(0xFFFF7E47);
+    final activeAqua = const Color(0xFF0284C7);
 
-    return Expanded(
+    return SizedBox(
+      width: 92,
       child: ScaleButton(
         onTap: () {
           HapticFeedback.selectionClick();
           onTap();
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
             color: isActive
-                ? heatOrange.withValues(alpha: isDark ? 0.28 : 0.18)
+                ? activeAqua.withValues(alpha: isDark ? 0.32 : 0.18)
                 : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.6)),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isActive
-                  ? heatOrange
+                  ? activeAqua
                   : (isDark ? Colors.white.withValues(alpha: 0.1) : primaryTeal.withValues(alpha: 0.12)),
               width: isActive ? 1.5 : 1,
             ),
@@ -679,7 +678,7 @@ class _PresetButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 20,
-                color: isActive ? heatOrange : (isDark ? Colors.white70 : primaryTeal),
+                color: isActive ? activeAqua : (isDark ? Colors.white70 : primaryTeal),
               ),
               const SizedBox(height: 4),
               Text(
@@ -689,7 +688,7 @@ class _PresetButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: isActive ? heatOrange : (isDark ? Colors.white : primaryTeal),
+                  color: isActive ? activeAqua : (isDark ? Colors.white : primaryTeal),
                 ),
               ),
               Text(
