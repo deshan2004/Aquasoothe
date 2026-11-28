@@ -11,15 +11,18 @@ import 'scale_button.dart';
 /// Global helper to show the Smart Weather-based Hydration Modal Sheet
 void showWeatherHydrationModal(BuildContext context) {
   HapticFeedback.mediumImpact();
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-    ),
-    builder: (_) => const WeatherHydrationSheet(),
-  );
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!context.mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      builder: (_) => const WeatherHydrationSheet(),
+    );
+  });
 }
 
 class WeatherHydrationSheet extends ConsumerWidget {

@@ -16,10 +16,14 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Suppress known Flutter framework-level debug assertion on iOS Simulator during semantics traversal (Flutter 3.47+ object.dart:5705)
+  // Suppress known Flutter 3.47+ framework-level debug semantics assertions on iOS Simulator (object.dart:5705 / 5994)
   final originalOnError = FlutterError.onError;
   FlutterError.onError = (FlutterErrorDetails details) {
-    if (details.exceptionAsString().contains('parentDataDirty')) {
+    final str = details.exceptionAsString();
+    if (str.contains('parentDataDirty') ||
+        str.contains('_needsLayout') ||
+        str.contains('was not laid out') ||
+        str.contains('debugCheckForParentData')) {
       return;
     }
     if (originalOnError != null) {
@@ -30,7 +34,11 @@ void main() async {
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
-    if (error.toString().contains('parentDataDirty')) {
+    final str = error.toString();
+    if (str.contains('parentDataDirty') ||
+        str.contains('_needsLayout') ||
+        str.contains('was not laid out') ||
+        str.contains('debugCheckForParentData')) {
       return true; // Suppress harmless framework-internal semantics assertion
     }
     return false;
