@@ -201,73 +201,80 @@ class NotificationService {
       iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
     );
 
-    // Cancel prior hydration reminders (IDs 100 - 120)
+    // Cancel prior hydration reminders (IDs 100 - 120) and bedtime reminder (ID 999)
     for (int id = 100; id <= 120; id++) {
       await _notificationsPlugin.cancel(id: id);
     }
+    await _notificationsPlugin.cancel(id: 999);
 
     final wakeHour = goal.wakeHour;
     final sleepHour = goal.sleepHour;
-    final intervalHours = goal.intervalHours > 0 ? goal.intervalHours : 2.5;
+    final intervalHours = goal.intervalHours > 0 ? goal.intervalHours : 2.0;
 
-    int notifId = 100;
-    double currentHour = wakeHour + intervalHours;
+    // 1. Schedule Hydration Reminders if enabled
+    if (goal.isReminderEnabled) {
+      int notifId = 100;
+      double currentHour = wakeHour + intervalHours;
 
-    while (currentHour < sleepHour && notifId < 115) {
-      final hour = currentHour.floor();
-      final minute = ((currentHour - hour) * 60).round();
-      final scheduledTZ = _nextInstanceOfTime(hour, minute);
+      while (currentHour < sleepHour && notifId < 115) {
+        final hour = currentHour.floor();
+        final minute = ((currentHour - hour) * 60).round();
+        final scheduledTZ = _nextInstanceOfTime(hour, minute);
 
-      final title = isSinhala
-          ? '💧 වතුර වීදුරුවක් පානය කරන්න'
-          : '💧 Time for a Glass of Water';
-      final body = isSinhala
-          ? 'නිරෝගී සුවය උදෙසා දැන් නැවුම් වතුර වීදුරුවක් පානය කර ශරීරය සජලීයව තබා ගන්න.'
-          : 'Stay refreshed and healthy! Take a break and drink a clean glass of water.';
+        final title = isSinhala
+            ? '💧 වතුර වීදුරුවක් පානය කරන්න'
+            : '💧 Time for a Glass of Water';
+        final body = isSinhala
+            ? 'නිරෝගී සුවය උදෙසා දැන් නැවුම් වතුර වීදුරුවක් පානය කර ශරීරය සජලීයව තබා ගන්න.'
+            : 'Stay refreshed and healthy! Take a break and drink a clean glass of water.';
+
+        try {
+          await _notificationsPlugin.zonedSchedule(
+            id: notifId++,
+            title: title,
+            body: body,
+            scheduledDate: scheduledTZ,
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            matchDateTimeComponents: DateTimeComponents.time,
+          );
+        } catch (e) {
+          debugPrint('Notice scheduling hydration reminder: $e');
+        }
+
+        currentHour += intervalHours;
+      }
+    }
+
+    // 2. Schedule Bedtime wind-down reminder if enabled
+    if (goal.isBedtimeReminderEnabled) {
+      final advanceMins = goal.windDownAdvanceMinutes > 0 ? goal.windDownAdvanceMinutes : 30;
+      int windDownHour = sleepHour;
+      int windDownMinute = (goal.sleepMinute - advanceMins);
+      while (windDownMinute < 0) {
+        windDownMinute += 60;
+        windDownHour = (windDownHour - 1 + 24) % 24;
+      }
+      final bedtimeTZ = _nextInstanceOfTime(windDownHour, windDownMinute);
+
+      final bedTitle = isSinhala ? '🌙 සුවබර නින්දට සූදානම් වන්න' : '🌙 Bedtime Wind-Down';
+      final bedBody = isSinhala
+          ? 'නින්දට පෙර සන්සුන් ස්වභාවික නාදයන් අසමින් මනස නිවා සුවෙන් සැතපෙන්න.'
+          : 'Prepare for deep sleep. Relax with soothing nature soundscapes tonight.';
 
       try {
         await _notificationsPlugin.zonedSchedule(
-          id: notifId++,
-          title: title,
-          body: body,
-          scheduledDate: scheduledTZ,
+          id: 999,
+          title: bedTitle,
+          body: bedBody,
+          scheduledDate: bedtimeTZ,
           notificationDetails: details,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.time,
         );
       } catch (e) {
-        debugPrint('Notice scheduling hydration reminder: $e');
+        debugPrint('Notice scheduling wind-down reminder: $e');
       }
-
-      currentHour += intervalHours;
-    }
-
-    // Bedtime wind-down reminder (30 mins before sleep)
-    int windDownHour = sleepHour;
-    int windDownMinute = (goal.sleepMinute - 30);
-    if (windDownMinute < 0) {
-      windDownMinute += 60;
-      windDownHour = (windDownHour - 1 + 24) % 24;
-    }
-    final bedtimeTZ = _nextInstanceOfTime(windDownHour, windDownMinute);
-
-    final bedTitle = isSinhala ? '🌙 සුවබර නින්දට සූදානම් වන්න' : '🌙 Bedtime Wind-Down';
-    final bedBody = isSinhala
-        ? 'නින්දට පෙර සන්සුන් ස්වභාවික නාදයන් අසමින් මනස නිවා සුවෙන් සැතපෙන්න.'
-        : 'Prepare for deep sleep. Relax with soothing nature soundscapes tonight.';
-
-    try {
-      await _notificationsPlugin.zonedSchedule(
-        id: 999,
-        title: bedTitle,
-        body: bedBody,
-        scheduledDate: bedtimeTZ,
-        notificationDetails: details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-    } catch (e) {
-      debugPrint('Notice scheduling wind-down reminder: $e');
     }
   }
 

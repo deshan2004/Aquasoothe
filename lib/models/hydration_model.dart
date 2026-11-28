@@ -48,7 +48,10 @@ class HydrationGoal {
   final int wakeMinute;
   final int sleepHour;
   final int sleepMinute;
-  final double intervalHours; // 1.5, 2.0, 3.0
+  final double intervalHours; // 1.0, 1.5, 2.0, 3.0
+  final bool isReminderEnabled;
+  final int windDownAdvanceMinutes; // 15, 30, 45, 60
+  final bool isBedtimeReminderEnabled;
 
   HydrationGoal({
     this.dailyTargetMl = 2000,
@@ -58,6 +61,9 @@ class HydrationGoal {
     this.sleepHour = 22,
     this.sleepMinute = 0,
     this.intervalHours = 2.0,
+    this.isReminderEnabled = true,
+    this.windDownAdvanceMinutes = 30,
+    this.isBedtimeReminderEnabled = true,
   });
 
   int get dailyTargetCups => (dailyTargetMl / 250).round();
@@ -70,6 +76,9 @@ class HydrationGoal {
     int? sleepHour,
     int? sleepMinute,
     double? intervalHours,
+    bool? isReminderEnabled,
+    int? windDownAdvanceMinutes,
+    bool? isBedtimeReminderEnabled,
   }) {
     return HydrationGoal(
       dailyTargetMl: dailyTargetMl ?? this.dailyTargetMl,
@@ -79,6 +88,9 @@ class HydrationGoal {
       sleepHour: sleepHour ?? this.sleepHour,
       sleepMinute: sleepMinute ?? this.sleepMinute,
       intervalHours: intervalHours ?? this.intervalHours,
+      isReminderEnabled: isReminderEnabled ?? this.isReminderEnabled,
+      windDownAdvanceMinutes: windDownAdvanceMinutes ?? this.windDownAdvanceMinutes,
+      isBedtimeReminderEnabled: isBedtimeReminderEnabled ?? this.isBedtimeReminderEnabled,
     );
   }
 
@@ -90,6 +102,9 @@ class HydrationGoal {
         'sleepHour': sleepHour,
         'sleepMinute': sleepMinute,
         'intervalHours': intervalHours,
+        'isReminderEnabled': isReminderEnabled,
+        'windDownAdvanceMinutes': windDownAdvanceMinutes,
+        'isBedtimeReminderEnabled': isBedtimeReminderEnabled,
       };
 
   factory HydrationGoal.fromJson(Map<String, dynamic> json) => HydrationGoal(
@@ -100,5 +115,8 @@ class HydrationGoal {
         sleepHour: json['sleepHour'] as int? ?? 22,
         sleepMinute: json['sleepMinute'] as int? ?? 0,
         intervalHours: (json['intervalHours'] as num?)?.toDouble() ?? 2.0,
+        isReminderEnabled: json['isReminderEnabled'] as bool? ?? true,
+        windDownAdvanceMinutes: json['windDownAdvanceMinutes'] as int? ?? 30,
+        isBedtimeReminderEnabled: json['isBedtimeReminderEnabled'] as bool? ?? true,
       );
 }

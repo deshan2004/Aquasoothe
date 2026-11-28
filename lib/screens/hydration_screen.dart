@@ -14,6 +14,7 @@ import '../widgets/weekly_hydration_chart.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/medication_schedule_sheet.dart';
 import '../widgets/weather_hydration_sheet.dart';
+import '../widgets/hydration_reminder_sheet.dart';
 
 class HydrationScreen extends ConsumerWidget {
   const HydrationScreen({super.key});
@@ -403,7 +404,7 @@ class HydrationScreen extends ConsumerWidget {
 
                     const SizedBox(height: 18),
 
-                    // + Log Water Primary Action Button
+                    // + Log Water Primary Action Button (Unified Signature Glass Look)
                     ScaleButton(
                       onTap: () {
                         ref.read(hydrationProvider.notifier).logWater(250);
@@ -428,18 +429,18 @@ class HydrationScreen extends ConsumerWidget {
                             height: 56,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFFFFAE85), Color(0xFFF89966)],
+                                colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.45),
+                                color: const Color(0xFF70D6CE).withValues(alpha: 0.45),
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFF8AB80).withValues(alpha: 0.4),
+                                  color: const Color(0xFF0C4648).withValues(alpha: 0.35),
                                   blurRadius: 14,
                                   offset: const Offset(0, 4),
                                 ),
@@ -448,20 +449,93 @@ class HydrationScreen extends ConsumerWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.add_rounded, size: 24, color: Color(0xFF4D2411)),
+                                const Icon(Icons.add_rounded, size: 24, color: Colors.white),
                                 const SizedBox(width: 8),
                                 Text(
                                   isSi ? 'වතුර වීදුරුවක් (250ml)' : 'Log Standard Cup (250ml)',
                                   style: const TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 17,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF4D2411),
+                                    color: Colors.white,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // 💧 Water Reminder Customization Card
+                    GlassCard(
+                      borderRadius: 20,
+                      blur: 16,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      margin: EdgeInsets.zero,
+                      onTap: () => showHydrationReminderSheet(context),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.notifications_active_rounded, color: Color(0xFF0284C7), size: 22),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isSi ? 'ජල මතක් කිරීම් (Water Reminders)' : 'Water Reminders',
+                                  style: TextStyle(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  goal.isReminderEnabled
+                                      ? (isSi
+                                          ? 'පැය ${goal.intervalHours.toString().replaceAll('.0', '')}කට වරක් • ${goal.wakeHour}:00 - ${goal.sleepHour}:00'
+                                          : 'Every ${goal.intervalHours.toString().replaceAll('.0', '')}h • ${goal.wakeHour}:00 to ${goal.sleepHour}:00')
+                                      : (isSi ? 'මතක් කිරීම් අක්‍රියයි' : 'Reminders currently off'),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: subtitleColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.tune_rounded, size: 14, color: Color(0xFF0284C7)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isSi ? 'සකසන්න' : 'Customize',
+                                  style: const TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0284C7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 

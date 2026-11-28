@@ -23,6 +23,8 @@ import '../widgets/gentle_alarm_sheet.dart';
 import '../widgets/weather_hydration_sheet.dart';
 import '../widgets/unified_sound_studio_sheet.dart';
 import '../widgets/sleep_rating_dialog.dart';
+import '../widgets/hydration_reminder_sheet.dart';
+import '../widgets/bedtime_reminder_sheet.dart';
 import 'main_navigation_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -625,6 +627,19 @@ class HomeScreen extends ConsumerWidget {
                                     ],
                                   ),
                                 ),
+                                const SizedBox(width: 8),
+                                ScaleButton(
+                                  onTap: () => showBedtimeReminderSheet(context),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(7),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
+                                    ),
+                                    child: const Icon(Icons.tune_rounded, size: 18, color: Color(0xFF0284C7)),
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 14),
@@ -757,13 +772,30 @@ class HomeScreen extends ConsumerWidget {
                                             color: textColor,
                                           ),
                                         ),
-                                        Text(
-                                          '${hydrationState.todayTotalMl} / ${hydrationState.goal.dailyTargetMl} ml',
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0284C7),
-                                          ),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              '${hydrationState.todayTotalMl} / ${hydrationState.goal.dailyTargetMl} ml',
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF0284C7),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            ScaleButton(
+                                              onTap: () => showHydrationReminderSheet(context),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: const Icon(Icons.tune_rounded, size: 14, color: Color(0xFF0284C7)),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),

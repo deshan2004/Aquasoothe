@@ -175,14 +175,14 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 textColor: textColor,
                 subtitleColor: subtitleColor,
                 icon: Icons.psychology_rounded,
-                iconColor: const Color(0xFFD97706),
-                iconBg: const Color(0xFFFEF3C7),
+                iconColor: const Color(0xFF0891B2),
+                iconBg: const Color(0xFFE0F2FE),
                 title: isSi ? 'මනසේ සුවතාවයට ගැළපෙන නාදය සොයන්න' : 'Find Sound for My Mood',
                 description: isSi
                     ? 'ගැඹුරු නින්ද, ආතතිය දුරු කිරීම හෝ සන්සුන් භාවය සඳහා නිර්දේශ'
                     : 'Quick recommendations for deep sleep, stress relief, or focus',
                 badgeText: 'Smart Match',
-                badgeColor: const Color(0xFFD97706),
+                badgeColor: const Color(0xFF0891B2),
                 onTap: () {
                   Navigator.of(context).pop();
                   showModalBottomSheet(
@@ -206,14 +206,14 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 textColor: textColor,
                 subtitleColor: subtitleColor,
                 icon: Icons.add_to_photos_rounded,
-                iconColor: const Color(0xFFD97706),
-                iconBg: const Color(0xFFFEF3C7),
+                iconColor: const Color(0xFF0284C7),
+                iconBg: const Color(0xFFE0F2FE),
                 title: isSi ? 'Phone එකේ ඇති Sound එකතු කරන්න' : 'Add Sound from Phone',
                 description: isSi
                     ? 'දුරකතනයේ ඇති MP3, WAV හෝ පිරිත්, භාවනා නාද එක් කරන්න'
                     : 'Import MP3, WAV from device files or web link',
                 badgeText: 'File Browser',
-                badgeColor: const Color(0xFFD97706),
+                badgeColor: const Color(0xFF0284C7),
                 onTap: () {
                   Navigator.of(context).pop();
                   showAddCustomSoundSheet(context);
@@ -229,14 +229,14 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 textColor: textColor,
                 subtitleColor: subtitleColor,
                 icon: Icons.graphic_eq_rounded,
-                iconColor: const Color(0xFF8B5CF6),
-                iconBg: const Color(0xFFF3E8FF),
+                iconColor: const Color(0xFF0D9488),
+                iconBg: const Color(0xFFCCFBF1),
                 title: isSi ? 'සුව නින්දට Binaural මොළයේ තරංග' : 'Binaural Sleep Brainwaves',
                 description: isSi
                     ? 'ගැඹුරු නින්දට 2.5Hz Delta සහ සිත සන්සුන් කිරීමට 6Hz Theta තරංග'
                     : 'Clinical 2.5Hz Delta & 6Hz Theta frequencies for deep restorative rest',
                 badgeText: 'Neuro-Acoustic',
-                badgeColor: const Color(0xFF8B5CF6),
+                badgeColor: const Color(0xFF0D9488),
                 onTap: () {
                   Navigator.of(context).pop();
                   showModalBottomSheet(

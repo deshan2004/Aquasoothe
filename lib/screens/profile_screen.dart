@@ -10,6 +10,8 @@ import '../providers/hydration_provider.dart';
 import '../widgets/aquasoothe_header.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/scale_button.dart';
+import '../widgets/hydration_reminder_sheet.dart';
+import '../widgets/bedtime_reminder_sheet.dart';
 import 'auth_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -864,6 +866,50 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: isSi ? 'දැනුම්දීම් සහ සිහිකැඳවීම්' : 'Notifications & Reminders',
                     icon: Icons.notifications_active_rounded,
                     children: [
+                      _buildListTileItem(
+                        textColor: textColor,
+                        subtitleColor: subtitleColor,
+                        title: isSi ? '💧 ජලය පානය කිරීමේ සිහිකැඳවීම්' : '💧 Water Intake Reminders',
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              isSi ? 'සැකසීම' : 'Customize',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0284C7),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(Icons.chevron_right_rounded, color: subtitleColor, size: 20),
+                          ],
+                        ),
+                        onTap: () => showHydrationReminderSheet(context),
+                      ),
+                      Divider(height: 1, color: dividerColor),
+                      _buildListTileItem(
+                        textColor: textColor,
+                        subtitleColor: subtitleColor,
+                        title: isSi ? '🌙 සුව නින්දේ වේලාව සහ සිහිකැඳවීම්' : '🌙 Bedtime & Sleep Reminders',
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              isSi ? 'සැකසීම' : 'Customize',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0284C7),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(Icons.chevron_right_rounded, color: subtitleColor, size: 20),
+                          ],
+                        ),
+                        onTap: () => showBedtimeReminderSheet(context),
+                      ),
+                      Divider(height: 1, color: dividerColor),
                       _buildSwitchTileItem(
                         textColor: textColor,
                         title: isSi ? 'නිහඬ වේලාවන් (Quiet Hours)' : 'Quiet Hours (Night Silence)',

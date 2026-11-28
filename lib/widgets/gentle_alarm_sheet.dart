@@ -8,6 +8,7 @@ import '../providers/settings_provider.dart';
 import 'scale_button.dart';
 import 'sleep_rating_dialog.dart';
 import 'sound_visualizer_widget.dart';
+import 'bedtime_reminder_sheet.dart';
 
 /// Global helper to show the Gentle Nature Wake-Up Alarm Modal Sheet
 void showGentleAlarmModal(BuildContext context) {
@@ -582,19 +583,20 @@ class GentleAlarmSheet extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: (alarm.isRinging || alarmNotifier.isPreviewing)
-                            ? [const Color(0xFFE25C38), const Color(0xFFC0392B)]
-                            : [
-                                const Color(0xFF0C4648).withValues(alpha: 0.92),
-                                const Color(0xFF1E676B).withValues(alpha: 0.92),
-                              ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      gradient: (alarm.isRinging || alarmNotifier.isPreviewing)
+                          ? const LinearGradient(
+                              colors: [Color(0xFFE25C38), Color(0xFFC0392B)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : const LinearGradient(
+                              colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.4),
+                        color: const Color(0xFF70D6CE).withValues(alpha: 0.45),
                         width: 1.2,
                       ),
                       boxShadow: [
@@ -632,7 +634,7 @@ class GentleAlarmSheet extends ConsumerWidget {
                           const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            isSi ? '🔔 ඇලාම් නාදය සහ Off කිරීම අත්හදා බලන්න' : '🔔 Test Alarm Sound & Off Action',
+                            isSi ? '🔔 ඇලාම් නාදය අත්හදා බලන්න' : '🔔 Test Nature Alarm Sound',
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -646,6 +648,40 @@ class GentleAlarmSheet extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: 14),
+
+                // 🌙 Bedtime Sleep Reminder Action Card
+                ScaleButton(
+                  onTap: () => showBedtimeReminderSheet(context),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF0284C7).withValues(alpha: 0.3),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.nightlight_round, color: Color(0xFF0284C7), size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          isSi ? 'නින්දට යාමේ මතක් කිරීම් සකසන්න (Bedtime)' : 'Customize Bedtime Sleep Reminder',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : primaryTeal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
 
                 // Morning Sleep Quality Rating Button (Wake-up Check-in)
                 ScaleButton(

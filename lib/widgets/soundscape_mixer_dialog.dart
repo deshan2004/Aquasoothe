@@ -523,7 +523,7 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.1,
-                          color: Color(0xFFD97706),
+                          color: Color(0xFF0284C7),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -537,7 +537,7 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFFDBA74) : const Color(0xFFB45309),
+                              color: isDark ? const Color(0xFF70D6CE) : const Color(0xFF0284C7),
                             ),
                           ),
                         ),
@@ -570,19 +570,19 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? (isDark ? const Color(0xFFD97706).withValues(alpha: 0.3) : const Color(0xFFFEF3C7))
+                                ? (isDark ? const Color(0xFF0284C7).withValues(alpha: 0.25) : const Color(0xFFE0F2FE))
                                 : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF8FAFC)),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected
-                                  ? const Color(0xFFD97706)
+                                  ? const Color(0xFF0284C7)
                                   : (isDark ? Colors.white12 : Colors.black12),
                               width: isSelected ? 2 : 1,
                             ),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: const Color(0xFFD97706).withValues(alpha: 0.25),
+                                      color: const Color(0xFF0284C7).withValues(alpha: 0.25),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -596,11 +596,11 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                                 height: 38,
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? const Color(0xFFD97706)
+                                      ? const Color(0xFF0284C7)
                                       : (isDark ? Colors.white12 : Colors.white),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: const Color(0xFFD97706).withValues(alpha: isSelected ? 0.8 : 0.3),
+                                    color: const Color(0xFF0284C7).withValues(alpha: isSelected ? 0.8 : 0.3),
                                     width: 1,
                                   ),
                                 ),
@@ -624,7 +624,7 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
-                                        color: isSelected ? const Color(0xFFB45309) : textColor,
+                                        color: isSelected ? const Color(0xFF0284C7) : textColor,
                                       ),
                                     ),
                                     const SizedBox(height: 1),
@@ -642,7 +642,7 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                                 ),
                               ),
                               if (isSelected)
-                                const Icon(Icons.check_circle_rounded, color: Color(0xFFD97706), size: 16),
+                                const Icon(Icons.check_circle_rounded, color: Color(0xFF0284C7), size: 16),
                             ],
                           ),
                         ),
@@ -656,23 +656,23 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: (isDark ? Colors.white : const Color(0xFFD97706)).withValues(alpha: 0.05),
+                      color: (isDark ? Colors.white : const Color(0xFF0284C7)).withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: (isDark ? Colors.white12 : const Color(0xFFD97706).withValues(alpha: 0.2)),
+                        color: (isDark ? Colors.white12 : const Color(0xFF0284C7).withValues(alpha: 0.2)),
                       ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.graphic_eq_rounded, size: 20, color: Color(0xFFD97706)),
+                        const Icon(Icons.graphic_eq_rounded, size: 20, color: Color(0xFF0284C7)),
                         const SizedBox(width: 6),
                         Expanded(
                           child: SliderTheme(
                             data: SliderThemeData(
                               trackHeight: 5,
-                              activeTrackColor: const Color(0xFFD97706),
-                              inactiveTrackColor: const Color(0xFFD97706).withValues(alpha: 0.2),
-                              thumbColor: const Color(0xFFD97706),
+                              activeTrackColor: const Color(0xFF0284C7),
+                              inactiveTrackColor: const Color(0xFF0284C7).withValues(alpha: 0.2),
+                              thumbColor: const Color(0xFF0284C7),
                               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
                               overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
                             ),
@@ -687,12 +687,12 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                            color: const Color(0xFF0284C7).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             '${(audioNotifier.secondaryVolume * 100).round()}%',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFD97706)),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0284C7)),
                           ),
                         ),
                       ],
@@ -794,18 +794,20 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     decoration: BoxDecoration(
-                      gradient: isPlaying
-                          ? const LinearGradient(
-                              colors: [Color(0xFFEA580C), Color(0xFFC2410C)],
-                            )
-                          : const LinearGradient(
-                              colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
-                            ),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: const Color(0xFF70D6CE).withValues(alpha: 0.45),
+                        width: 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: (isPlaying ? const Color(0xFFEA580C) : const Color(0xFF0284C7)).withValues(alpha: 0.35),
-                          blurRadius: 12,
+                          color: const Color(0xFF0C4648).withValues(alpha: 0.35),
+                          blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
                       ],
