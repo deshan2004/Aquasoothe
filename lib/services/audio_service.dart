@@ -95,13 +95,53 @@ class AudioServiceNotifier extends ChangeNotifier {
     });
   }
 
+  static const Map<String, String> _soundArtCovers = {
+    'rainfall': 'https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=800&auto=format&fit=crop&q=80',
+    'ocean': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80',
+    'waterfall': 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=800&auto=format&fit=crop&q=80',
+    'forest': 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&auto=format&fit=crop&q=80',
+    'crickets': 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&auto=format&fit=crop&q=80',
+    'pink_noise': 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80',
+    'brown_noise': 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&auto=format&fit=crop&q=80',
+  };
+
+  Uri _resolveArtworkForTrack(SoundTrack track) {
+    final onlineCover = _soundArtCovers[track.id];
+    if (onlineCover != null) {
+      return Uri.parse(onlineCover);
+    }
+    if (track.category == 'AI Personalized' || track.id.startsWith('ai_bespoke_')) {
+      return Uri.parse('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80');
+    }
+    if (track.category == 'User Custom' || track.id.startsWith('user_sound_')) {
+      return Uri.parse('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80');
+    }
+    return Uri.parse('asset:///assets/images/weather_banner.jpg');
+  }
+
   AudioSource _buildAudioSource(SoundTrack track) {
+    final artUri = _resolveArtworkForTrack(track);
+    final artistLabel = _isMixerEnabled && _secondaryTrack != null
+        ? 'AquaSoothe • Blended with ${_secondaryTrack!.title}'
+        : (track.category == 'AI Personalized'
+            ? 'AquaSoothe AI • Prescribed Sleep Therapy'
+            : 'AquaSoothe • Nature Sound Therapy');
+
+    final albumLabel = track.description.isNotEmpty
+        ? track.description
+        : 'Restorative Neuro-Acoustic Loop';
+
     final mediaItem = MediaItem(
       id: track.id,
-      album: 'AquaSoothe',
+      album: albumLabel,
       title: track.title,
-      artist: 'Nature Sound Therapy',
-      artUri: Uri.parse('asset:///assets/images/logo.png'),
+      artist: artistLabel,
+      genre: 'Circadian Sleep Sanctuary',
+      artUri: artUri,
+      displayTitle: track.title,
+      displaySubtitle: artistLabel,
+      displayDescription: albumLabel,
+      duration: Duration(minutes: _secondsRemaining > 0 ? (_secondsRemaining / 60).ceil() : 45),
     );
 
     if (track.assetPath.startsWith('http://') || track.assetPath.startsWith('https://')) {

@@ -27,9 +27,11 @@ void main() async {
   try {
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.aquasoothe.audio',
-      androidNotificationChannelName: 'AquaSoothe Audio Playback',
+      androidNotificationChannelName: 'AquaSoothe Nature Sanctuary',
+      androidNotificationChannelDescription: 'Background audio playback & lock screen wellness therapy controls',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
+      notificationColor: const Color(0xFF0C4648),
     );
   } catch (e) {
     debugPrint('JustAudioBackground init note: $e');
