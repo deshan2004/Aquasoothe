@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/audio_provider.dart';
+import '../providers/settings_provider.dart';
 import '../screens/ai_sound_generator_screen.dart';
 import 'ai_sound_matcher_dialog.dart';
 import 'soundscape_mixer_dialog.dart';
@@ -16,6 +17,8 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final audioNotifier = ref.watch(audioServiceProvider);
+    final settings = ref.watch(settingsProvider);
+    final isSi = settings.isSinhala;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? const Color(0xFFE3F5F3) : const Color(0xFF0C4648);
@@ -86,18 +89,20 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Sound Studio Hub',
+                          isSi ? 'ස්වභාවික නාද මැදිරිය' : 'Sound Studio Hub',
                           style: TextStyle(
                             fontFamily: 'serif',
-                            fontSize: 24,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: textColor,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'All sound creation & mixing tools in one place',
-                          style: TextStyle(fontSize: 14, color: subtitleColor),
+                          isSi
+                              ? 'සුවදායී නාද සැකසීම සහ මිශ්‍ර කිරීමේ පහසුකම්'
+                              : 'All sound creation & mixing tools in one place',
+                          style: TextStyle(fontSize: 13, color: subtitleColor, fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -116,8 +121,10 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 icon: Icons.auto_fix_high_rounded,
                 iconColor: const Color(0xFF0284C7),
                 iconBg: const Color(0xFFE0F2FE),
-                title: 'Create Sound with AI',
-                description: 'Describe any sound (e.g. rain on a roof) and AI synthesizes it',
+                title: isSi ? 'AI මඟින් අලුත් නාදයක් හදන්න' : 'Create Sound with AI',
+                description: isSi
+                    ? 'කැමති ඕනෑම ශබ්දයක් විස්තර කළ විට AI මඟින් සාදා දේ'
+                    : 'Describe any sound (e.g. rain on a roof) and AI synthesizes it',
                 badgeText: 'Generative AI',
                 badgeColor: const Color(0xFF0284C7),
                 onTap: () {
@@ -139,15 +146,18 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 icon: Icons.tune_rounded,
                 iconColor: const Color(0xFF0C4648),
                 iconBg: const Color(0xFFE1F2F0),
-                title: 'Mix Two Sounds Together',
-                description: 'Blend rain with ocean waves or crickets with independent volume',
-                badgeText: audioNotifier.isMixerEnabled ? 'Active Mix' : null,
+                title: isSi ? 'ස්වභාවික නාද දෙකක් එකට මිශ්‍ර කරන්න' : 'Mix Two Sounds Together',
+                description: isSi
+                    ? 'වැස්සේ ශබ්දය සමඟ මුහුදු රළ හෝ රැහැයි නාද එකවර මිශ්‍ර කරන්න'
+                    : 'Blend rain with ocean waves or crickets with independent volume',
+                badgeText: audioNotifier.isMixerEnabled ? (isSi ? 'සක්‍රිය මිශ්‍රණය' : 'Active Mix') : null,
                 badgeColor: const Color(0xFF16A34A),
                 onTap: () {
                   Navigator.of(context).pop();
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                     ),
@@ -167,8 +177,10 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 icon: Icons.psychology_rounded,
                 iconColor: const Color(0xFFD97706),
                 iconBg: const Color(0xFFFEF3C7),
-                title: 'Find Sound for My Mood',
-                description: 'Quick recommendations for deep sleep, stress relief, or focus',
+                title: isSi ? 'මනසේ සුවතාවයට ගැළපෙන නාදය සොයන්න' : 'Find Sound for My Mood',
+                description: isSi
+                    ? 'ගැඹුරු නින්ද, ආතතිය දුරු කිරීම හෝ සන්සුන් භාවය සඳහා නිර්දේශ'
+                    : 'Quick recommendations for deep sleep, stress relief, or focus',
                 badgeText: 'Smart Match',
                 badgeColor: const Color(0xFFD97706),
                 onTap: () {
@@ -176,6 +188,7 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                     ),
@@ -195,8 +208,10 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 icon: Icons.add_to_photos_rounded,
                 iconColor: const Color(0xFFD97706),
                 iconBg: const Color(0xFFFEF3C7),
-                title: 'Add Sound from Phone',
-                description: 'Import MP3, WAV from device files or web link',
+                title: isSi ? 'Phone එකේ ඇති Sound එකතු කරන්න' : 'Add Sound from Phone',
+                description: isSi
+                    ? 'දුරකතනයේ ඇති MP3, WAV හෝ පිරිත්, භාවනා නාද එක් කරන්න'
+                    : 'Import MP3, WAV from device files or web link',
                 badgeText: 'File Browser',
                 badgeColor: const Color(0xFFD97706),
                 onTap: () {
@@ -216,8 +231,10 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 icon: Icons.graphic_eq_rounded,
                 iconColor: const Color(0xFF8B5CF6),
                 iconBg: const Color(0xFFF3E8FF),
-                title: 'Binaural Sleep Brainwaves',
-                description: 'Clinical 2.5Hz Delta & 6Hz Theta frequencies for deep restorative rest',
+                title: isSi ? 'සුව නින්දට Binaural මොළයේ තරංග' : 'Binaural Sleep Brainwaves',
+                description: isSi
+                    ? 'ගැඹුරු නින්දට 2.5Hz Delta සහ සිත සන්සුන් කිරීමට 6Hz Theta තරංග'
+                    : 'Clinical 2.5Hz Delta & 6Hz Theta frequencies for deep restorative rest',
                 badgeText: 'Neuro-Acoustic',
                 badgeColor: const Color(0xFF8B5CF6),
                 onTap: () {
@@ -225,6 +242,7 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                     ),
