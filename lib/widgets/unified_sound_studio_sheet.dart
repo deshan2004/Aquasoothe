@@ -205,6 +205,34 @@ class UnifiedSoundStudioSheet extends ConsumerWidget {
                 },
               ),
 
+              const SizedBox(height: 14),
+
+              // Tool 5: Scientific Binaural Beats & Delta Waves
+              _buildStudioOptionCard(
+                context: context,
+                isDark: isDark,
+                textColor: textColor,
+                subtitleColor: subtitleColor,
+                icon: Icons.graphic_eq_rounded,
+                iconColor: const Color(0xFF8B5CF6),
+                iconBg: const Color(0xFFF3E8FF),
+                title: 'Binaural Sleep Brainwaves',
+                description: 'Clinical 2.5Hz Delta & 6Hz Theta frequencies for deep restorative rest',
+                badgeText: 'Neuro-Acoustic',
+                badgeColor: const Color(0xFF8B5CF6),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                    ),
+                    builder: (_) => const SoundscapeMixerDialog(),
+                  );
+                },
+              ),
+
               const SizedBox(height: 16),
             ],
           ),

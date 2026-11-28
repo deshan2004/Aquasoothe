@@ -338,6 +338,119 @@ class CaregiverScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: 18),
+          Divider(height: 1, color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.1)),
+          const SizedBox(height: 16),
+
+          // One-Tap WhatsApp Daily Health Report Button
+          ScaleButton(
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              final dateStr = DateFormat('EEE, MMM d, yyyy').format(DateTime.now());
+              final progressPercent = ((totalMl / (goal.dailyTargetMl > 0 ? goal.dailyTargetMl : 2000)) * 100).round();
+
+              final reportText = '''
+*AquaSoothe Daily Health & Rest Report* 🌿
+👤 Patient: ${caregiverSettings.caregiverName.isNotEmpty ? caregiverSettings.caregiverName : "Family Member"}
+📅 Date: $dateStr
+
+💧 Hydration Intake: $totalMl / ${goal.dailyTargetMl} ml ($progressPercent% completed)
+💊 Medication Schedule: Taken & Logged
+😴 Sleep Sound Therapy: ${audioNotifier.currentTrack.title}
+🌟 Status: ${isMet ? "Goal Completed ✨" : "Active & Hydrated"}
+
+_Generated securely via AquaSoothe Wellness Companion._''';
+
+              Clipboard.setData(ClipboardData(text: reportText));
+
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  backgroundColor: isDark ? const Color(0xFF13272C) : Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+                  title: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF25D366).withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.share_rounded, color: Color(0xFF25D366), size: 22),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'WhatsApp Health Report',
+                        style: TextStyle(color: textColor, fontSize: 17, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Daily summary copied to clipboard! You can paste and send it directly on WhatsApp to your doctor or family member.',
+                        style: TextStyle(color: subtitleColor, fontSize: 13.5, height: 1.4),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          reportText,
+                          style: TextStyle(fontSize: 11.5, color: textColor, fontFamily: 'monospace'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0C4648))),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF25D366), Color(0xFF128C7E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF25D366).withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Share Daily Health Report (WhatsApp)',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

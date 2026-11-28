@@ -3,15 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:path_provider/path_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
 import 'providers/hydration_provider.dart';
 import 'providers/settings_provider.dart';
+import 'repositories/custom_sound_repository.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Cache documents directory path for dynamic iOS sandbox path resolution
+  try {
+    final docsDir = await getApplicationDocumentsDirectory();
+    CustomSoundRepository.appDocumentsPath = docsDir.path;
+  } catch (e) {
+    debugPrint('Docs dir note: $e');
+  }
 
   // Initialize background audio service for lock screen and notification controls
   try {

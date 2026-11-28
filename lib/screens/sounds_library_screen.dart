@@ -91,15 +91,15 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
         : [...customSounds, ...defaultTracks];
 
     final String pageTitle = (hasPersonalizedSound && !_showAllCatalog)
-        ? (isSi ? 'ඔබට නියමිත AI නාදය' : 'Your Prescribed Sound')
+        ? (isSi ? 'ඔබගේ පුද්ගලික ශබ්ද' : 'Your Personal Sounds')
         : (isSi ? 'සුව නින්දේ ශබ්ද' : 'Sleep Soundscapes');
 
     final String pageSubtitle = (hasPersonalizedSound && !_showAllCatalog)
-        ? (isSi ? 'ඔබේ නින්දේ අවශ්‍යතාවයට ගැලපෙන සුවිශේෂී නාදය පමණක් මෙහි ඇත.' : 'Specially formulated for your personal sleep challenge.')
+        ? (isSi ? 'ඔබට නියමිත AI නාද සහ ඔබ එක් කළ සියලුම ශබ්ද.' : 'Your personalized AI therapy and imported soundscapes.')
         : (isSi ? 'සුවබර නින්ද සඳහා සුවිශේෂී ස්වභාවික නාද.' : 'Curated audio for deep restorative rest.');
 
     final String countBadge = (hasPersonalizedSound && !_showAllCatalog)
-        ? (isSi ? 'අදාළ නාදය' : 'Prescribed for You')
+        ? (isSi ? '${customSounds.length} ශබ්ද' : '${customSounds.length} Sounds')
         : (isSi ? '${allTracks.length} ශබ්ද' : '${allTracks.length} Sounds');
 
     return Scaffold(

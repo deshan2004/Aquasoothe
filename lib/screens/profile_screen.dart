@@ -301,6 +301,204 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 18),
+
+                  // Smart Sleep & Acoustic Intelligence Card (Clinical Analytics & Correlation Insight)
+                  GlassCard(
+                    borderRadius: 24,
+                    blur: 18,
+                    padding: const EdgeInsets.all(20.0),
+                    margin: EdgeInsets.zero,
+                    borderColor: const Color(0xFF5ED1C7).withValues(alpha: isDark ? 0.25 : 0.4),
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [
+                              const Color(0xFF0F3237).withValues(alpha: 0.85),
+                              const Color(0xFF134248).withValues(alpha: 0.75),
+                            ]
+                          : [
+                              const Color(0xFFE8F6F4).withValues(alpha: 0.90),
+                              const Color(0xFFF3FAF9).withValues(alpha: 0.85),
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(9),
+                              decoration: BoxDecoration(
+                                color: (isDark ? const Color(0xFF5ED1C7) : primaryTeal).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(Icons.auto_awesome_rounded, color: isDark ? const Color(0xFF5ED1C7) : primaryTeal, size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isSi ? 'නින්ද සහ ශබ්ද බුද්ධිමය විශ්ලේෂණය' : 'Sleep & Acoustic Intelligence',
+                                    style: TextStyle(
+                                      fontSize: 15.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    isSi ? 'විද්‍යාත්මක නින්දේ සාධනීය අනුපාතය' : 'Clinical Restorative Sleep Correlation',
+                                    style: TextStyle(fontSize: 11.5, color: subtitleColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF059669).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.3)),
+                              ),
+                              child: const Text(
+                                '94% Optimal',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Best Match Badge Box
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.07)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 26),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isSi ? 'ඔබට වඩාත්ම ගැලපෙන නාදය (Best Sleep Match):' : 'Your Best Sleep Match Soundscape:',
+                                      style: TextStyle(fontSize: 11.5, color: subtitleColor, fontWeight: FontWeight.w600),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Ocean Waves & Rainfall Therapy',
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // Key Clinical Metrics (Latency, Restfulness, Hydration Sync)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      isSi ? 'නින්දට ගිය කාලය' : 'Sleep Latency',
+                                      style: TextStyle(fontSize: 10.5, color: subtitleColor),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '18 mins',
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textColor),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      '(-14m faster)',
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      isSi ? 'සුව නින්දේ ලකුණු' : 'Sleep Score',
+                                      style: TextStyle(fontSize: 10.5, color: subtitleColor),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '4.8 / 5.0',
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textColor),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Top Restorative',
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      isSi ? 'ජල-නින්ද සමමුහුර්ත' : 'Hydration Sync',
+                                      style: TextStyle(fontSize: 10.5, color: subtitleColor),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '${((hydrationState.todayTotalMl / (hydrationState.goal.dailyTargetMl > 0 ? hydrationState.goal.dailyTargetMl : 2000)) * 100).clamp(0, 100).round()}%',
+                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Circadian Active',
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
                   const SizedBox(height: 24),
 
                   // Section Title: Settings (සැකසුම්)

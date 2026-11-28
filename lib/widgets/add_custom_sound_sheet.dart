@@ -91,14 +91,28 @@ class _AddCustomSoundSheetState extends ConsumerState<AddCustomSoundSheet> {
 
     try {
       final files = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac'],
+        type: FileType.audio,
       );
 
       if (files.isNotEmpty && files.first.path != null) {
-        final rawFile = File(files.first.path!);
+        final pickedPath = files.first.path!;
+        final rawFile = File(pickedPath);
         final rawName = files.first.name;
-        final sizeBytes = await rawFile.length();
+
+        // Copy immediately into app documents directory so iOS sandbox never revokes access or clears temp!
+        final docsDir = await getApplicationDocumentsDirectory();
+        final customDir = Directory('${docsDir.path}/custom_sounds');
+        if (!await customDir.exists()) {
+          await customDir.create(recursive: true);
+        }
+
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final fileExt = rawName.contains('.') ? rawName.split('.').last : 'mp3';
+        final stagedFile = File('${customDir.path}/staged_$timestamp.$fileExt');
+
+        final bytes = await rawFile.readAsBytes();
+        await stagedFile.writeAsBytes(bytes);
+        final sizeBytes = bytes.length;
 
         // Generate clean title from filename
         final cleanTitle = rawName
@@ -111,15 +125,16 @@ class _AddCustomSoundSheetState extends ConsumerState<AddCustomSoundSheet> {
         }
 
         setState(() {
-          _selectedFile = rawFile;
+          _selectedFile = stagedFile;
           _selectedFileName = rawName;
           _selectedFileSize = sizeBytes;
+          _statusMessage = null;
         });
 
-        // Load preview
+        // Load preview safely from staged file
         try {
           await _previewPlayer.stop();
-          await _previewPlayer.setFilePath(rawFile.path);
+          await _previewPlayer.setFilePath(stagedFile.path);
         } catch (e) {
           debugPrint('Preview load note: $e');
         }
@@ -213,9 +228,10 @@ class _AddCustomSoundSheetState extends ConsumerState<AddCustomSoundSheet> {
 
   /// Finalize and save the custom sound
   Future<void> _saveAndAddSound() async {
+    final isSi = ref.read(settingsProvider).isSinhala;
     if (_selectedFile == null) {
       setState(() {
-        _statusMessage = 'Please pick a sound file first.';
+        _statusMessage = isSi ? 'කරුණාකර පළමුව ශබ්ද ගොනුවක් තෝරන්න.' : 'Please pick a sound file first.';
       });
       return;
     }
@@ -223,7 +239,7 @@ class _AddCustomSoundSheetState extends ConsumerState<AddCustomSoundSheet> {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       setState(() {
-        _statusMessage = 'Please enter a name for your sound.';
+        _statusMessage = isSi ? 'කරුණාකර ශබ්දයට නමක් ඇතුළත් කරන්න.' : 'Please enter a name for your sound.';
       });
       return;
     }
@@ -241,13 +257,24 @@ class _AddCustomSoundSheetState extends ConsumerState<AddCustomSoundSheet> {
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileExt = _selectedFileName?.split('.').last ?? 'mp3';
-      final persistentPath = '${customDir.path}/sound_$timestamp.$fileExt';
-      await _selectedFile!.copy(persistentPath);
+      final persistentFileName = 'sound_$timestamp.$fileExt';
+      final persistentPath = '${customDir.path}/$persistentFileName';
+
+      // Move or copy safely to the final persistent path
+      if (_selectedFile != null && await _selectedFile!.exists()) {
+        if (_selectedFile!.path != persistentPath) {
+          final bytes = await _selectedFile!.readAsBytes();
+          await File(persistentPath).writeAsBytes(bytes);
+          try {
+            await _selectedFile!.delete();
+          } catch (_) {}
+        }
+      }
 
       final newTrack = SoundTrack(
         id: 'user_sound_$timestamp',
         title: title,
-        description: 'Imported audio file (${(_selectedFileSize ?? 0) ~/ 1024} KB)',
+        description: 'Imported audio file (${((_selectedFileSize ?? 0) / 1024).round()} KB)',
         assetPath: persistentPath,
         icon: _selectedIcon,
         category: 'User Custom',
@@ -255,6 +282,7 @@ class _AddCustomSoundSheetState extends ConsumerState<AddCustomSoundSheet> {
 
       // Save to Riverpod provider & LocalStorage/Firestore
       await ref.read(customSoundProvider.notifier).saveCustomSound(newTrack);
+      await ref.read(settingsProvider.notifier).setLastUsedSoundId(newTrack.id);
 
       // Auto-select and play in audio player
       final audioNotifier = ref.read(audioServiceProvider);
@@ -274,7 +302,9 @@ class _AddCustomSoundSheetState extends ConsumerState<AddCustomSoundSheet> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    '"$title" added to your sound library and playing now!',
+                    isSi
+                        ? '"$title" සාර්ථකව ඔබගේ ශබ්ද එකතුවට එක් විය!'
+                        : '"$title" added to your sound library and playing now!',
                     style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ),

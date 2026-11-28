@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
@@ -8,6 +9,8 @@ import '../models/sound_model.dart';
 class CustomSoundRepository {
   final SharedPreferences _prefs;
   final String _userKey;
+
+  static String? appDocumentsPath;
 
   fb_auth.FirebaseAuth get _firebaseAuth => fb_auth.FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
@@ -23,11 +26,26 @@ class CustomSoundRepository {
       final List<dynamic> decoded = jsonDecode(rawJson);
       return decoded.map((e) {
         final iconCode = e['iconCode'] as int? ?? Icons.music_note_rounded.codePoint;
+        String resolvedAssetPath = e['assetPath'] as String;
+
+        // Dynamic iOS & Android Sandbox Container Path Resolution:
+        // When app updates or rebuilds on iOS, the sandbox container UUID changes.
+        // We ensure the assetPath always resolves to the current valid directory!
+        if (resolvedAssetPath.contains('/custom_sounds/')) {
+          final fileName = resolvedAssetPath.split('/custom_sounds/').last;
+          if (appDocumentsPath != null && appDocumentsPath!.isNotEmpty) {
+            final activePath = '$appDocumentsPath/custom_sounds/$fileName';
+            if (File(activePath).existsSync() || !File(resolvedAssetPath).existsSync()) {
+              resolvedAssetPath = activePath;
+            }
+          }
+        }
+
         return SoundTrack(
           id: e['id'] as String,
           title: e['title'] as String,
           description: e['description'] as String? ?? '',
-          assetPath: e['assetPath'] as String,
+          assetPath: resolvedAssetPath,
           icon: _getIconFromCode(iconCode),
           category: e['category'] as String? ?? 'User Custom',
         );
