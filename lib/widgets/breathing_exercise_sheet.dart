@@ -523,27 +523,19 @@ class _BreathingExerciseSheetState extends ConsumerState<BreathingExerciseSheet>
                         width: double.infinity,
                         height: 56,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: _isActive
-                                ? [
-                                    const Color(0xFF0C4648).withValues(alpha: 0.95),
-                                    const Color(0xFF1E676B).withValues(alpha: 0.95),
-                                  ]
-                                : [
-                                    const Color(0xFFFFAE85).withValues(alpha: 0.95),
-                                    const Color(0xFFF89966).withValues(alpha: 0.95),
-                                  ],
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.4),
+                            color: const Color(0xFF70D6CE).withValues(alpha: 0.45),
                             width: 1.5,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: (_isActive ? primaryTeal : const Color(0xFFF8AB80)).withValues(alpha: 0.35),
+                              color: const Color(0xFF0C4648).withValues(alpha: 0.35),
                               blurRadius: 18,
                               offset: const Offset(0, 6),
                             ),
@@ -554,16 +546,16 @@ class _BreathingExerciseSheetState extends ConsumerState<BreathingExerciseSheet>
                           children: [
                             Icon(
                               _isActive ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                              color: _isActive ? Colors.white : const Color(0xFF4D2411),
+                              color: Colors.white,
                               size: 24,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               _isActive ? AppStrings.pauseBreathing(isSi) : AppStrings.startBreathing(isSi),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: _isActive ? Colors.white : const Color(0xFF4D2411),
+                                color: Colors.white,
                                 letterSpacing: 0.3,
                               ),
                             ),

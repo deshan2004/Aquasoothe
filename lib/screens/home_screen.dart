@@ -449,14 +449,18 @@ class HomeScreen extends ConsumerWidget {
                                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                                           decoration: BoxDecoration(
                                             gradient: const LinearGradient(
-                                              colors: [Color(0xFFFFAE85), Color(0xFFF89966)],
+                                              colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
                                             ),
                                             borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: const Color(0xFF70D6CE).withValues(alpha: 0.4),
+                                              width: 1.2,
+                                            ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: const Color(0xFFFFAE85).withValues(alpha: 0.45),
+                                                color: const Color(0xFF0C4648).withValues(alpha: 0.35),
                                                 blurRadius: 14,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -468,7 +472,7 @@ class HomeScreen extends ConsumerWidget {
                                             children: [
                                               Icon(
                                                 isHeroPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                                color: const Color(0xFF4D2411),
+                                                color: Colors.white,
                                                 size: 24,
                                               ),
                                               const SizedBox(width: 6),
@@ -482,7 +486,7 @@ class HomeScreen extends ConsumerWidget {
                                                   style: const TextStyle(
                                                     fontSize: 14.5,
                                                     fontWeight: FontWeight.bold,
-                                                    color: Color(0xFF4D2411),
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                               ),

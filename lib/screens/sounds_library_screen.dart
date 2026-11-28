@@ -580,15 +580,15 @@ class _SoundsLibraryScreenState extends ConsumerState<SoundsLibraryScreen> {
                                               Icon(
                                                 Icons.phone_android_rounded,
                                                 size: 13,
-                                                color: isDark ? const Color(0xFFFFAE85) : const Color(0xFFC2410C),
+                                                color: const Color(0xFF0284C7),
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
                                                 isSi ? 'දුරකථනයෙන් එක් කළ ශබ්දය' : 'Imported from Phone',
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
-                                                  color: isDark ? const Color(0xFFFFAE85) : const Color(0xFFC2410C),
+                                                  color: Color(0xFF0284C7),
                                                   letterSpacing: 0.2,
                                                 ),
                                               ),
