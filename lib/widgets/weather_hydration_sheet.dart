@@ -388,67 +388,75 @@ class _WeatherHydrationSheetState extends ConsumerState<WeatherHydrationSheet> {
                     ],
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Top Row: Full-width Location & Change Button
+                      InkWell(
+                        onTap: () => _openLocationPicker(context, isSi, isDark),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_rounded,
+                                size: 16,
+                                color: Color(0xFF0284C7),
+                              ),
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: Text(
+                                  weatherState.locationName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.edit_location_alt_rounded, size: 12, color: Color(0xFF0284C7)),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      isSi ? 'වෙනස් කරන්න' : 'Change',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF0284C7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Middle Row: Temperature on Left, Dynamic Goal Box on Right
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              InkWell(
-                                onTap: () => _openLocationPicker(context, isSi, isDark),
-                                borderRadius: BorderRadius.circular(10),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on_rounded,
-                                        size: 16,
-                                        color: Color(0xFF0284C7),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          maxWidth: MediaQuery.of(context).size.width * 0.36,
-                                        ),
-                                        child: Text(
-                                          weatherState.locationName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: textColor,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF0284C7).withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(
-                                            color: const Color(0xFF0284C7).withValues(alpha: 0.25),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          isSi ? 'වෙනස්' : 'Change',
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF0284C7),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -463,9 +471,9 @@ class _WeatherHydrationSheetState extends ConsumerState<WeatherHydrationSheet> {
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
+                                  const Text(
                                     'C',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                       color: Color(0xFF0284C7),
@@ -524,11 +532,11 @@ class _WeatherHydrationSheetState extends ConsumerState<WeatherHydrationSheet> {
                                 const SizedBox(height: 2),
                                 Text(
                                   '${weatherState.effectiveGoalMl} ml',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'serif',
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF0284C7),
+                                    color: Color(0xFF0284C7),
                                   ),
                                 ),
                                 if (weatherState.isSmartAdjustmentEnabled && weatherState.calculatedBonusMl > 0)
