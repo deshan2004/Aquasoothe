@@ -2,10 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/weather_hydration_model.dart';
 import '../providers/settings_provider.dart';
 import '../providers/weather_hydration_provider.dart';
-import 'glass_card.dart';
 import 'scale_button.dart';
 
 /// Global helper to show the Smart Weather-based Hydration Modal Sheet
@@ -25,11 +23,55 @@ void showWeatherHydrationModal(BuildContext context) {
   });
 }
 
-class WeatherHydrationSheet extends ConsumerWidget {
+class WeatherHydrationSheet extends ConsumerStatefulWidget {
   const WeatherHydrationSheet({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WeatherHydrationSheet> createState() => _WeatherHydrationSheetState();
+}
+
+class _WeatherHydrationSheetState extends ConsumerState<WeatherHydrationSheet> {
+  bool _isTracking = false;
+
+  Future<void> _handleLiveTrack(bool isSi) async {
+    if (_isTracking) return;
+    setState(() => _isTracking = true);
+    HapticFeedback.mediumImpact();
+
+    try {
+      await ref.read(weatherHydrationProvider.notifier).autoDetectLocationAndWeather();
+      if (!mounted) return;
+      final state = ref.read(weatherHydrationProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.gps_fixed_rounded, color: Color(0xFF70D6CE), size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isSi
+                      ? '📍 ස්ථානය සහ කාලගුණය සාර්ථකව යාවත්කාලීන විය: ${state.locationName} (${state.temperatureCelsius.toStringAsFixed(1)}°C)'
+                      : '📍 Live Weather Synced: ${state.locationName} (${state.temperatureCelsius.toStringAsFixed(1)}°C)',
+                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF0C4648),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isTracking = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final weatherState = ref.watch(weatherHydrationProvider);
     final weatherNotifier = ref.read(weatherHydrationProvider.notifier);
 
@@ -38,49 +80,38 @@ class WeatherHydrationSheet extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final primaryTeal = const Color(0xFF0C4648);
-
-    Color getRiskColor(HeatRiskLevel level) {
-      switch (level) {
-        case HeatRiskLevel.normal:
-          return const Color(0xFF5ED1C7);
-        case HeatRiskLevel.moderate:
-          return const Color(0xFFFFB866);
-        case HeatRiskLevel.high:
-          return const Color(0xFFFF7E47);
-        case HeatRiskLevel.severe:
-          return const Color(0xFFFF4848);
-      }
-    }
-
-    final riskColor = getRiskColor(weatherState.riskLevel);
+    final skyAqua = const Color(0xFF0284C7);
+    final mintGlow = const Color(0xFF70D6CE);
+    final textColor = isDark ? const Color(0xFFE8F6F4) : const Color(0xFF0C4648);
+    final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF506E70);
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: isDark
                   ? [
-                      const Color(0xFF13272C).withValues(alpha: 0.92),
-                      const Color(0xFF0C1F23).withValues(alpha: 0.95),
+                      const Color(0xFF0F262B).withValues(alpha: 0.90),
+                      const Color(0xFF08181B).withValues(alpha: 0.95),
                     ]
                   : [
-                      Colors.white.withValues(alpha: 0.90),
-                      const Color(0xFFE8F6F4).withValues(alpha: 0.92),
+                      Colors.white.withValues(alpha: 0.88),
+                      const Color(0xFFEDF8F7).withValues(alpha: 0.92),
                     ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             border: Border.all(
-              color: Colors.white.withValues(alpha: isDark ? 0.18 : 0.75),
+              color: Colors.white.withValues(alpha: isDark ? 0.16 : 0.75),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0C4648).withValues(alpha: isDark ? 0.4 : 0.16),
+                color: const Color(0xFF0C4648).withValues(alpha: isDark ? 0.5 : 0.18),
                 blurRadius: 40,
                 offset: const Offset(0, -10),
               ),
@@ -109,18 +140,18 @@ class WeatherHydrationSheet extends ConsumerWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: riskColor.withValues(alpha: 0.2),
+                        color: skyAqua.withValues(alpha: 0.18),
                         border: Border.all(
-                          color: riskColor.withValues(alpha: 0.45),
+                          color: mintGlow.withValues(alpha: 0.4),
                           width: 1.2,
                         ),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.thermostat_rounded,
-                        color: riskColor,
+                        color: Color(0xFF0284C7),
                         size: 22,
                       ),
                     ),
@@ -135,14 +166,15 @@ class WeatherHydrationSheet extends ConsumerWidget {
                               fontFamily: 'serif',
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFFE3F5F3) : primaryTeal,
+                              color: textColor,
                             ),
                           ),
                           Text(
                             isSi ? 'උෂ්ණත්වය මත විජලනය වැළැක්වීම' : 'Dynamic heat-adjusted hydration',
                             style: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A),
+                              fontSize: 12.5,
+                              color: subtitleColor,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -154,7 +186,7 @@ class WeatherHydrationSheet extends ConsumerWidget {
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
                         ),
                         child: Icon(
                           Icons.close_rounded,
@@ -166,53 +198,181 @@ class WeatherHydrationSheet extends ConsumerWidget {
                   ],
                 ),
 
-                // Live Location Auto-Tracker Button
-                ScaleButton(
-                  onTap: () async {
-                    HapticFeedback.selectionClick();
-                    await weatherNotifier.autoDetectLocationAndWeather();
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    margin: const EdgeInsets.only(bottom: 14),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFF0284C7).withValues(alpha: isDark ? 0.25 : 0.12),
-                          const Color(0xFF0C4648).withValues(alpha: isDark ? 0.20 : 0.08),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF0284C7).withValues(alpha: 0.35),
-                        width: 1.2,
-                      ),
+                const SizedBox(height: 16),
+
+                // 🌐 Enhanced Live GPS Tracker Glass Card (live track krn ek hdnn)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [
+                              const Color(0xFF0284C7).withValues(alpha: 0.22),
+                              const Color(0xFF0C4648).withValues(alpha: 0.28),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.85),
+                              const Color(0xFFE0F4F2).withValues(alpha: 0.70),
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.my_location_rounded, size: 16, color: Color(0xFF0284C7)),
-                        const SizedBox(width: 8),
-                        Text(
-                          isSi ? 'මගේ සජීවී ස්ථානය සහ කාලගුණය Track කරන්න' : 'Track My Live Location & Weather',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : primaryTeal,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF70D6CE).withValues(alpha: isDark ? 0.35 : 0.6),
+                      width: 1.4,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0284C7).withValues(alpha: isDark ? 0.25 : 0.08),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF0284C7).withValues(alpha: 0.16),
+                          border: Border.all(
+                            color: const Color(0xFF0284C7).withValues(alpha: 0.35),
                           ),
                         ),
-                      ],
-                    ),
+                        child: _isTracking
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0284C7)),
+                                ),
+                              )
+                            : const Icon(
+                                Icons.near_me_rounded,
+                                size: 20,
+                                color: Color(0xFF0284C7),
+                              ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  isSi ? 'සජීවී GPS සම්බන්ධතාවය' : 'Live GPS Connected',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              isSi
+                                  ? 'නවතම උෂ්ණත්වය ස්වයංක්‍රීයව Sync වේ'
+                                  : 'Auto-detecting hyper-local weather',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: subtitleColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ScaleButton(
+                        onTap: () => _handleLiveTrack(isSi),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFF70D6CE).withValues(alpha: 0.45),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0C4648).withValues(alpha: 0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.refresh_rounded, size: 14, color: Colors.white),
+                              const SizedBox(width: 5),
+                              Text(
+                                isSi ? 'යාවත්කාලීන' : 'Sync Live',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                // Main Weather & Dynamic Goal Hero Glass Card
-                GlassCard(
-                  borderRadius: 24,
-                  blur: 20,
+                const SizedBox(height: 16),
+
+                // 💎 Main Weather & Dynamic Goal Hero Glass Card
+                Container(
+                  width: double.infinity,
                   padding: const EdgeInsets.all(20),
-                  margin: EdgeInsets.zero,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [
+                              Colors.white.withValues(alpha: 0.08),
+                              Colors.white.withValues(alpha: 0.03),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.78),
+                              Colors.white.withValues(alpha: 0.50),
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: isDark ? 0.16 : 0.85),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isDark ? Colors.black : const Color(0xFF0C4648)).withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     children: [
                       Row(
@@ -226,21 +386,21 @@ class WeatherHydrationSheet extends ConsumerWidget {
                                 children: [
                                   Icon(
                                     Icons.location_on_rounded,
-                                    size: 15,
-                                    color: isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A),
+                                    size: 16,
+                                    color: const Color(0xFF0284C7),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     weatherState.locationName,
                                     style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 8),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -248,51 +408,57 @@ class WeatherHydrationSheet extends ConsumerWidget {
                                     '${weatherState.temperatureCelsius.toStringAsFixed(1)}°',
                                     style: TextStyle(
                                       fontFamily: 'serif',
-                                      fontSize: 44,
+                                      fontSize: 46,
                                       fontWeight: FontWeight.bold,
-                                      color: isDark ? Colors.white : primaryTeal,
+                                      color: textColor,
                                       height: 1.0,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'C',
-                                    style: TextStyle(
-                                      fontSize: 20,
+                                    style: const TextStyle(
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
-                                      color: riskColor,
+                                      color: Color(0xFF0284C7),
                                     ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                isSi ? 'ආර්ද්‍රතාව: ${weatherState.humidityPercent}%' : 'Humidity: ${weatherState.humidityPercent}%',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark ? Colors.white60 : Colors.black54,
-                                ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.water_drop_rounded, size: 13, color: Color(0xFF0284C7)),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    isSi ? 'ආර්ද්‍රතාව: ${weatherState.humidityPercent}%' : 'Humidity: ${weatherState.humidityPercent}%',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: subtitleColor,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
 
-                          // Dynamic Goal Result Box
+                          // Dynamic Goal Result Glass Box
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  riskColor.withValues(alpha: 0.18),
-                                  riskColor.withValues(alpha: 0.08),
+                                  const Color(0xFF0284C7).withValues(alpha: 0.18),
+                                  const Color(0xFF0C4648).withValues(alpha: 0.10),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: riskColor.withValues(alpha: 0.4),
-                                width: 1.2,
+                                color: const Color(0xFF70D6CE).withValues(alpha: 0.45),
+                                width: 1.3,
                               ),
                             ),
                             child: Column(
@@ -304,7 +470,7 @@ class WeatherHydrationSheet extends ConsumerWidget {
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 0.8,
-                                    color: isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A),
+                                    color: subtitleColor,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -314,23 +480,23 @@ class WeatherHydrationSheet extends ConsumerWidget {
                                     fontFamily: 'serif',
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : primaryTeal,
+                                    color: const Color(0xFF0284C7),
                                   ),
                                 ),
                                 if (weatherState.isSmartAdjustmentEnabled && weatherState.calculatedBonusMl > 0)
                                   Container(
                                     margin: const EdgeInsets.only(top: 4),
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: riskColor.withValues(alpha: 0.25),
+                                      color: const Color(0xFF0284C7).withValues(alpha: 0.20),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
                                       '+${weatherState.calculatedBonusMl}ml ${isSi ? "රස්නය නිසා" : "Heat Bonus"}',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
-                                        color: riskColor,
+                                        color: Color(0xFF0284C7),
                                       ),
                                     ),
                                   ),
@@ -342,17 +508,20 @@ class WeatherHydrationSheet extends ConsumerWidget {
 
                       const SizedBox(height: 14),
 
-                      // Status summary pill
+                      // Status summary glass pill
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.05),
+                          color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info_outline_rounded, size: 16, color: riskColor),
+                            const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF0284C7)),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -360,7 +529,7 @@ class WeatherHydrationSheet extends ConsumerWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: isDark ? const Color(0xFFE3F5F3) : primaryTeal,
+                                  color: textColor,
                                 ),
                               ),
                             ),
@@ -373,82 +542,111 @@ class WeatherHydrationSheet extends ConsumerWidget {
 
                 const SizedBox(height: 16),
 
-                // Senior Health Advice & Dehydration Alert Box
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: riskColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: riskColor.withValues(alpha: 0.35),
-                        width: 1.3,
-                      ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: riskColor.withValues(alpha: 0.2),
-                          ),
-                          child: Icon(
-                            weatherState.riskLevel == HeatRiskLevel.normal
-                                ? Icons.favorite_rounded
-                                : Icons.warning_amber_rounded,
-                            color: riskColor,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isSi ? 'වැඩිහිටි සුවතා උපදෙස්' : 'Senior Health Notice',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : primaryTeal,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isSi ? weatherState.seniorAdviceSi : weatherState.seniorAdviceEn,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  height: 1.4,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark ? const Color(0xFFD0E6E4) : const Color(0xFF335557),
-                                ),
-                              ),
+                // 🛡️ Senior Health Advice & Dehydration Alert Glass Box
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [
+                              const Color(0xFF0284C7).withValues(alpha: 0.12),
+                              const Color(0xFF0C4648).withValues(alpha: 0.16),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.75),
+                              const Color(0xFFE8F6F4).withValues(alpha: 0.65),
                             ],
-                          ),
-                        ),
-                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF70D6CE).withValues(alpha: isDark ? 0.25 : 0.55),
+                      width: 1.3,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0C4648).withValues(alpha: 0.05),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Smart Auto Adjustment Switch
-                GlassCard(
-                  borderRadius: 20,
-                  blur: 16,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  margin: EdgeInsets.zero,
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                        ),
+                        child: const Icon(
+                          Icons.health_and_safety_rounded,
+                          color: Color(0xFF0284C7),
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isSi ? 'වැඩිහිටි සුවතා උපදෙස්' : 'Senior Health Notice',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              isSi ? weatherState.seniorAdviceSi : weatherState.seniorAdviceEn,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                height: 1.4,
+                                fontWeight: FontWeight.w500,
+                                color: subtitleColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ⚡ Smart Auto Adjustment Glass Card
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [
+                              Colors.white.withValues(alpha: 0.06),
+                              Colors.white.withValues(alpha: 0.02),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.75),
+                              Colors.white.withValues(alpha: 0.55),
+                            ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: isDark ? 0.14 : 0.8),
+                      width: 1.3,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF0284C7).withValues(alpha: 0.14),
                         ),
                         child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF0284C7), size: 20),
                       ),
@@ -462,14 +660,14 @@ class WeatherHydrationSheet extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : primaryTeal,
+                                color: textColor,
                               ),
                             ),
                             Text(
                               isSi ? 'රස්නය අනුව ඉලක්කය ස්වයංක්‍රීයව වැඩි කරන්න' : 'Automatically adapts goal on warmer days',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A),
+                                color: subtitleColor,
                               ),
                             ),
                           ],
@@ -478,6 +676,7 @@ class WeatherHydrationSheet extends ConsumerWidget {
                       Switch.adaptive(
                         value: weatherState.isSmartAdjustmentEnabled,
                         activeTrackColor: const Color(0xFF70D6CE),
+                        activeThumbColor: Colors.white,
                         onChanged: (val) {
                           weatherNotifier.toggleSmartAdjustment(val);
                         },
@@ -486,91 +685,22 @@ class WeatherHydrationSheet extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: 20),
-
-                // Sri Lankan Climate Presets for Elderly One-Touch Selection
-                Text(
-                  isSi ? 'නගරය අනුව කාලගුණය (Live Weather)' : 'Select City for Live Weather',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : primaryTeal,
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    children: [
-                      _PresetButton(
-                        title: isSi ? 'නුවරඑළිය' : 'Nuwara Eliya',
-                        temp: 'Hill',
-                        icon: Icons.ac_unit_rounded,
-                        isActive: weatherState.locationName.contains('Nuwara Eliya'),
-                        onTap: () => weatherNotifier.setPresetCity('Nuwara Eliya'),
-                      ),
-                      const SizedBox(width: 8),
-                      _PresetButton(
-                        title: isSi ? 'කොළඹ' : 'Colombo',
-                        temp: 'Coast',
-                        icon: Icons.wb_cloudy_rounded,
-                        isActive: weatherState.locationName.contains('Colombo'),
-                        onTap: () => weatherNotifier.setPresetCity('Colombo'),
-                      ),
-                      const SizedBox(width: 8),
-                      _PresetButton(
-                        title: isSi ? 'මහනුවර' : 'Kandy',
-                        temp: 'Central',
-                        icon: Icons.park_rounded,
-                        isActive: weatherState.locationName.contains('Kandy'),
-                        onTap: () => weatherNotifier.setPresetCity('Kandy'),
-                      ),
-                      const SizedBox(width: 8),
-                      _PresetButton(
-                        title: isSi ? 'ගාල්ල' : 'Galle',
-                        temp: 'South',
-                        icon: Icons.waves_rounded,
-                        isActive: weatherState.locationName.contains('Galle'),
-                        onTap: () => weatherNotifier.setPresetCity('Galle'),
-                      ),
-                      const SizedBox(width: 8),
-                      _PresetButton(
-                        title: isSi ? 'අනුරාධපුරය' : 'Anuradhapura',
-                        temp: 'Dry Zone',
-                        icon: Icons.wb_sunny_rounded,
-                        isActive: weatherState.locationName.contains('Anuradhapura'),
-                        onTap: () => weatherNotifier.setPresetCity('Anuradhapura'),
-                      ),
-                      const SizedBox(width: 8),
-                      _PresetButton(
-                        title: isSi ? 'යාපනය' : 'Jaffna',
-                        temp: 'North',
-                        icon: Icons.sunny,
-                        isActive: weatherState.locationName.contains('Jaffna'),
-                        onTap: () => weatherNotifier.setPresetCity('Jaffna'),
-                      ),
-                    ],
-                  ),
-                ),
-
                 const SizedBox(height: 18),
 
-                // Manual Temperature Slider for Custom Tuning
+                // 🌡️ Manual Temperature Slider for Custom Tuning
                 Text(
                   isSi ? 'උෂ්ණත්වය සකසන්න: ${weatherState.temperatureCelsius.toStringAsFixed(0)}°C' : 'Manual Tuning: ${weatherState.temperatureCelsius.toStringAsFixed(0)}°C',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? const Color(0xFF88ACAA) : const Color(0xFF5B787A),
+                    color: subtitleColor,
                   ),
                 ),
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     activeTrackColor: const Color(0xFF0284C7),
                     thumbColor: const Color(0xFF0284C7),
-                    inactiveTrackColor: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.15),
+                    inactiveTrackColor: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.12),
                     trackHeight: 6,
                     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                   ),
@@ -584,9 +714,9 @@ class WeatherHydrationSheet extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
 
-                // Done / Confirm Button
+                // 🚀 Done / Confirm Signature Glass Button
                 ScaleButton(
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
@@ -600,13 +730,13 @@ class WeatherHydrationSheet extends ConsumerWidget {
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFF70D6CE).withValues(alpha: 0.4),
+                        color: const Color(0xFF70D6CE).withValues(alpha: 0.45),
                         width: 1.4,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: const Color(0xFF0C4648).withValues(alpha: 0.3),
-                          blurRadius: 12,
+                          blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
                       ],
@@ -624,82 +754,6 @@ class WeatherHydrationSheet extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PresetButton extends StatelessWidget {
-  final String title;
-  final String temp;
-  final IconData icon;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _PresetButton({
-    required this.title,
-    required this.temp,
-    required this.icon,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryTeal = const Color(0xFF0C4648);
-    final activeAqua = const Color(0xFF0284C7);
-
-    return SizedBox(
-      width: 92,
-      child: ScaleButton(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-          decoration: BoxDecoration(
-            color: isActive
-                ? activeAqua.withValues(alpha: isDark ? 0.32 : 0.18)
-                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.6)),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isActive
-                  ? activeAqua
-                  : (isDark ? Colors.white.withValues(alpha: 0.1) : primaryTeal.withValues(alpha: 0.12)),
-              width: isActive ? 1.5 : 1,
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: isActive ? activeAqua : (isDark ? Colors.white70 : primaryTeal),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: isActive ? activeAqua : (isDark ? Colors.white : primaryTeal),
-                ),
-              ),
-              Text(
-                temp,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black54,
-                ),
-              ),
-            ],
           ),
         ),
       ),
