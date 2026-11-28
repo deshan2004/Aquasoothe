@@ -7,6 +7,28 @@ import '../providers/audio_provider.dart';
 import '../providers/settings_provider.dart';
 import 'scale_button.dart';
 
+class _MoodOptionMeta {
+  final String emoji;
+  final IconData icon;
+  final Color themeColor;
+  final Color bgColor;
+  final String titleEn;
+  final String titleSi;
+  final String descEn;
+  final String descSi;
+
+  const _MoodOptionMeta({
+    required this.emoji,
+    required this.icon,
+    required this.themeColor,
+    required this.bgColor,
+    required this.titleEn,
+    required this.titleSi,
+    required this.descEn,
+    required this.descSi,
+  });
+}
+
 class AISoundMatcherDialog extends ConsumerStatefulWidget {
   const AISoundMatcherDialog({super.key});
 
@@ -18,6 +40,59 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
   UserMoodState _selectedMood = UserMoodState.insomnia;
   AISoundRecommendation? _recommendation;
   bool _isAnalyzing = false;
+
+  static const Map<UserMoodState, _MoodOptionMeta> _moodMeta = {
+    UserMoodState.insomnia: _MoodOptionMeta(
+      emoji: '🌙',
+      icon: Icons.nightlight_round,
+      themeColor: Color(0xFF0284C7),
+      bgColor: Color(0xFFE0F2FE),
+      titleEn: 'Trouble Falling Asleep',
+      titleSi: 'නින්ද නොයාම හෝ අපහසුව',
+      descEn: 'Helps you drift off quickly into deep sleep',
+      descSi: 'ඉක්මනින් ගැඹුරු සුව නින්දකට මඟ පාදයි',
+    ),
+    UserMoodState.stressed: _MoodOptionMeta(
+      emoji: '🧘',
+      icon: Icons.self_improvement_rounded,
+      themeColor: Color(0xFF10B981),
+      bgColor: Color(0xFFD1FAE5),
+      titleEn: 'Stressed or Anxious Mind',
+      titleSi: 'මානසික ආතතිය හෝ කලබල බව',
+      descEn: 'Calms racing thoughts and slows heart rate',
+      descSi: 'හදවතේ ස්පන්දනය සන්සුන් කර සිත නිවාලයි',
+    ),
+    UserMoodState.lightSleeper: _MoodOptionMeta(
+      emoji: '🛡️',
+      icon: Icons.shield_rounded,
+      themeColor: Color(0xFF8B5CF6),
+      bgColor: Color(0xFFEDE9FE),
+      titleEn: 'Block Outside Noise',
+      titleSi: 'බාහිර ශබ්ද නිසා නින්ද කැඩීම',
+      descEn: 'Covers street traffic, barking & room sounds',
+      descSi: 'ගෙදර දොරේ හා වාහන ශබ්ද බාධා අවම කරයි',
+    ),
+    UserMoodState.windDown: _MoodOptionMeta(
+      emoji: '📖',
+      icon: Icons.auto_stories_rounded,
+      themeColor: Color(0xFFD97706),
+      bgColor: Color(0xFFFEF3C7),
+      titleEn: 'Peaceful Evening Wind-Down',
+      titleSi: 'සන්සුන් විවේකය සහ කියවීම',
+      descEn: 'Gentle nature ambience for resting or reading',
+      descSi: 'රාත්‍රී කාලයේ මනසට සාමකාමී පරිසරයක් සදයි',
+    ),
+    UserMoodState.exhausted: _MoodOptionMeta(
+      emoji: '🌿',
+      icon: Icons.spa_rounded,
+      themeColor: Color(0xFF06B6D4),
+      bgColor: Color(0xFFCFFAFE),
+      titleEn: 'Tired Body & Muscle Strain',
+      titleSi: 'ශාරීරික තෙහෙට්ටුව සහ වේදනාව',
+      descEn: 'Soothing water cascades that relax tired muscles',
+      descSi: 'මාංශ පේශිවල තෙහෙට්ටුව ලිහිල් කර සුවය සලසයි',
+    ),
+  };
 
   @override
   void initState() {
@@ -37,54 +112,45 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
     });
   }
 
-  String _getMoodLabelSi(UserMoodState mood) {
-    switch (mood) {
-      case UserMoodState.stressed:
-        return 'මානසික ආතතිය හෝ චකිතය';
-      case UserMoodState.insomnia:
-        return 'නින්ද නොයාම හෝ අපහසුව';
-      case UserMoodState.lightSleeper:
-        return 'බාහිර ශබ්ද නිසා නින්ද කැඩීම';
-      case UserMoodState.windDown:
-        return 'සන්සුන් විවේකය සහ කියවීම';
-      case UserMoodState.exhausted:
-        return 'ශාරීරික තෙහෙට්ටුව සහ වේදනාව';
-    }
-  }
-
-  String _getMoodDescSi(UserMoodState mood) {
-    switch (mood) {
-      case UserMoodState.stressed:
-        return 'හදවතේ ස්පන්දනය සන්සුන් කර සිත නිවාලයි';
-      case UserMoodState.insomnia:
-        return 'ඉක්මනින් ගැඹුරු සුව නින්දකට මඟ පාදයි';
-      case UserMoodState.lightSleeper:
-        return 'ගෙදර දොරේ හා වාහන ශබ්ද බාධා අවම කරයි';
-      case UserMoodState.windDown:
-        return 'රාත්‍රී කාලයේ මනසට සාමකාමී පරිසරයක් සදයි';
-      case UserMoodState.exhausted:
-        return 'මාංශ පේශිවල තෙහෙට්ටුව ලිහිල් කර සුවය සලසයි';
-    }
-  }
-
-  String _getTrackTitleSi(String id) {
+  String _getTrackTitle(String id, bool isSi) {
     switch (id) {
       case 'waterfall':
-        return 'දිය ඇල්ලේ නාදය';
+        return isSi ? 'නැවුම් දිය ඇල්ල' : 'Waterfall';
       case 'ocean':
-        return 'සාගර රළ ශබ්දය';
+        return isSi ? 'සාගර රළ' : 'Ocean Waves';
       case 'rainfall':
-        return 'සුවදායී වැසි නාදය';
+        return isSi ? 'සුවදායී වැස්ස' : 'Gentle Rainfall';
       case 'pink_noise':
-        return 'සන්සුන් Pink Noise තරංග';
+        return isSi ? 'Pink Noise (ශබ්ද ආවරණය)' : 'Pink Noise (Noise Blocker)';
       case 'brown_noise':
-        return 'ගැඹුරු Brown Noise තරංග';
+        return isSi ? 'Brown Noise (සුව නින්දේ තරංග)' : 'Deep Brown Noise';
       case 'forest':
-        return 'වනපෙතේ සුළං රැල්ල';
+        return isSi ? 'වනපෙතේ සුළඟ' : 'Forest Breeze';
       case 'crickets':
-        return 'රාත්‍රී රැහැයි නාදය';
+        return isSi ? 'රාත්‍රී රැහැයියන්' : 'Night Crickets';
       default:
-        return 'ස්වභාවික නාදය';
+        return isSi ? 'ස්වභාවික නාදය' : 'Soothing Nature Sound';
+    }
+  }
+
+  String _getTrackEmoji(String id) {
+    switch (id) {
+      case 'waterfall':
+        return '🏞️';
+      case 'ocean':
+        return '🌊';
+      case 'rainfall':
+        return '🌧️';
+      case 'pink_noise':
+        return '🌸';
+      case 'brown_noise':
+        return '📻';
+      case 'forest':
+        return '🌲';
+      case 'crickets':
+        return '🦗';
+      default:
+        return '🎵';
     }
   }
 
@@ -113,7 +179,7 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
           decoration: BoxDecoration(
             color: isDark
                 ? const Color(0xFF0F2027).withValues(alpha: 0.94)
-                : Colors.white.withValues(alpha: 0.94),
+                : Colors.white.withValues(alpha: 0.95),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             border: Border.all(
               color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.8),
@@ -213,7 +279,7 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                       Expanded(
                         child: Text(
                           isSi
-                              ? 'මේ මොහොතේ ඔබේ සිතට හෝ ගතට දැනෙන අවශ්‍යතාවය කුමක්ද?'
+                              ? 'මේ මොහොතේ ඔබේ සිතට හෝ ගතට දැනෙන හැඟීම කුමක්ද?'
                               : 'How are you feeling right now?',
                           style: TextStyle(
                             fontSize: 14.5,
@@ -228,11 +294,13 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
 
                 const SizedBox(height: 12),
 
-                // Senior-Friendly Mood Cards
+                // Senior-Friendly Mood Cards with Modern Emoji Badges
                 ...UserMoodState.values.map((mood) {
                   final isSelected = _selectedMood == mood;
+                  final meta = _moodMeta[mood]!;
+
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: 9),
                     child: ScaleButton(
                       onTap: () {
                         HapticFeedback.selectionClick();
@@ -240,22 +308,22 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                         _analyzeAndRecommend();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? (isDark ? const Color(0xFF0284C7).withValues(alpha: 0.25) : const Color(0xFFE0F2FE))
-                              : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)),
+                              ? (isDark ? meta.themeColor.withValues(alpha: 0.25) : meta.bgColor)
+                              : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF8FAFC)),
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF0284C7)
+                                ? meta.themeColor
                                 : (isDark ? Colors.white12 : Colors.black12),
                             width: isSelected ? 2 : 1,
                           ),
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                                    color: meta.themeColor.withValues(alpha: 0.2),
                                     blurRadius: 10,
                                     offset: const Offset(0, 2),
                                   ),
@@ -269,12 +337,16 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                               height: 44,
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? const Color(0xFF0284C7)
-                                    : (isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.15)),
+                                    ? meta.themeColor
+                                    : (isDark ? Colors.white12 : Colors.white),
                                 shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: meta.themeColor.withValues(alpha: isSelected ? 0.8 : 0.3),
+                                  width: 1.2,
+                                ),
                               ),
                               child: Center(
-                                child: Text(mood.emoji, style: const TextStyle(fontSize: 22)),
+                                child: Text(meta.emoji, style: const TextStyle(fontSize: 22)),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -283,16 +355,16 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isSi ? _getMoodLabelSi(mood) : mood.label,
+                                    isSi ? meta.titleSi : meta.titleEn,
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? (isDark ? Colors.white : const Color(0xFF0369A1)) : textColor,
+                                      color: isSelected ? (isDark ? Colors.white : meta.themeColor) : textColor,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    isSi ? _getMoodDescSi(mood) : mood.description,
+                                    isSi ? meta.descSi : meta.descEn,
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isSelected
@@ -307,8 +379,8 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                             if (isSelected)
                               Container(
                                 padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF0284C7),
+                                decoration: BoxDecoration(
+                                  color: meta.themeColor,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
@@ -336,7 +408,7 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            isSi ? 'AI එක මඟින් වඩාත් ගැළපෙන නාදය තෝරමින් පවතී...' : 'Analyzing acoustic profiles...',
+                            isSi ? 'AI එක මඟින් වඩාත් ගැළපෙන නාදය තෝරමින් පවතී...' : 'Analyzing acoustic profiles for your sleep...',
                             style: TextStyle(fontSize: 13, color: subtitleColor, fontWeight: FontWeight.w500),
                           ),
                         ],
@@ -415,30 +487,37 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Primary Track Row
+                        // Primary Track Row with Modern Emoji Badge (NO barcode grid icon!)
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              width: 40,
+                              height: 40,
                               decoration: BoxDecoration(
                                 color: const Color(0xFF0284C7).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFF0284C7).withValues(alpha: 0.4),
+                                ),
                               ),
-                              child: Icon(_recommendation!.primaryTrack.icon, color: const Color(0xFF0284C7), size: 20),
+                              child: Center(
+                                child: Text(
+                                  _getTrackEmoji(_recommendation!.primaryTrack.id),
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isSi ? 'ප්‍රධාන නාදය (Primary)' : 'Primary Sound',
+                                    isSi ? 'ප්‍රධාන නාදය' : 'Primary Sound',
                                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: subtitleColor),
                                   ),
                                   Text(
-                                    isSi
-                                        ? _getTrackTitleSi(_recommendation!.primaryTrack.id)
-                                        : _recommendation!.primaryTrack.title,
+                                    _getTrackTitle(_recommendation!.primaryTrack.id, isSi),
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -456,26 +535,33 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                width: 40,
+                                height: 40,
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFD97706).withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFFD97706).withValues(alpha: 0.4),
+                                  ),
                                 ),
-                                child: Icon(_recommendation!.secondaryTrack!.icon, color: const Color(0xFFD97706), size: 20),
+                                child: Center(
+                                  child: Text(
+                                    _getTrackEmoji(_recommendation!.secondaryTrack!.id),
+                                    style: const TextStyle(fontSize: 20),
+                                  ),
+                                ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      isSi ? 'පසුබිමින් මිශ්‍ර වන නාදය (Secondary)' : 'Layered Secondary',
+                                      isSi ? 'පසුබිමින් මිශ්‍ර වන නාදය' : 'Layered Background Sound',
                                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: subtitleColor),
                                     ),
                                     Text(
-                                      isSi
-                                          ? _getTrackTitleSi(_recommendation!.secondaryTrack!.id)
-                                          : _recommendation!.secondaryTrack!.title,
+                                      _getTrackTitle(_recommendation!.secondaryTrack!.id, isSi),
                                       style: TextStyle(
                                         fontSize: 14.5,
                                         fontWeight: FontWeight.bold,
@@ -489,7 +575,7 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                           ),
                         ],
 
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         Row(
                           children: [
                             const Icon(Icons.timer_outlined, size: 16, color: Color(0xFF0284C7)),
@@ -497,7 +583,7 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                             Text(
                               isSi
                                   ? 'නිර්දේශිත ටයිමරය: ${_recommendation!.recommendedTimer.minutes == 0 ? "මුළු රාත්‍රිය පුරාම" : "${_recommendation!.recommendedTimer.minutes} මිනිත්තු"}'
-                                  : 'Timer Recommendation: ${_recommendation!.recommendedTimer.label}',
+                                  : 'Recommended Timer: ${_recommendation!.recommendedTimer.label}',
                               style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: subtitleColor),
                             ),
                           ],
@@ -509,7 +595,9 @@ class _AISoundMatcherDialogState extends ConsumerState<AISoundMatcherDialog> {
                         ),
 
                         Text(
-                          _recommendation!.aiReasoning,
+                          isSi
+                              ? 'මෙම ස්වභාවික නාද සංකලනය මනස සන්සුන් කර නින්දට බාධා වන අහිතකර සිතුවිලි දුරු කරමින් ගැඹුරු සුව නින්දකට මඟ පාදයි.'
+                              : _recommendation!.aiReasoning,
                           style: TextStyle(
                             fontSize: 13,
                             color: textColor.withValues(alpha: 0.85),

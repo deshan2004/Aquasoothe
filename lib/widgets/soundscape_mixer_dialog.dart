@@ -9,36 +9,116 @@ import '../services/audio_service.dart';
 import 'scale_button.dart';
 import 'sound_visualizer_widget.dart';
 
+class _SoundMeta {
+  final String emoji;
+  final IconData icon;
+  final Color themeColor;
+  final Color bgColor;
+  final String titleEn;
+  final String titleSi;
+  final String descEn;
+  final String descSi;
+
+  const _SoundMeta({
+    required this.emoji,
+    required this.icon,
+    required this.themeColor,
+    required this.bgColor,
+    required this.titleEn,
+    required this.titleSi,
+    required this.descEn,
+    required this.descSi,
+  });
+}
+
 class SoundscapeMixerDialog extends ConsumerWidget {
   const SoundscapeMixerDialog({super.key});
 
-  String _getTrackTitleSi(String id) {
-    switch (id) {
-      case 'waterfall':
-        return 'දිය ඇල්ල';
-      case 'ocean':
-        return 'සාගර රළ';
-      case 'rainfall':
-        return 'වැස්ස';
-      case 'pink_noise':
-        return 'Pink Noise';
-      case 'brown_noise':
-        return 'Brown Noise';
-      case 'forest':
-        return 'වනාන්තරය';
-      case 'crickets':
-        return 'රැහැයියන්';
-      default:
-        return 'ස්වභාවික නාදය';
-    }
-  }
+  static const Map<String, _SoundMeta> _meta = {
+    'waterfall': _SoundMeta(
+      emoji: '🏞️',
+      icon: Icons.water_rounded,
+      themeColor: Color(0xFF06B6D4),
+      bgColor: Color(0xFFE0F7FA),
+      titleEn: 'Waterfall',
+      titleSi: 'දිය ඇල්ල',
+      descEn: 'Fresh flowing cascade',
+      descSi: 'නැවුම් දිය පහර',
+    ),
+    'ocean': _SoundMeta(
+      emoji: '🌊',
+      icon: Icons.waves_rounded,
+      themeColor: Color(0xFF0284C7),
+      bgColor: Color(0xFFE0F2FE),
+      titleEn: 'Ocean Waves',
+      titleSi: 'සාගර රළ',
+      descEn: 'Gentle rhythmic tides',
+      descSi: 'සන්සුන් මුහුදු රළ',
+    ),
+    'rainfall': _SoundMeta(
+      emoji: '🌧️',
+      icon: Icons.water_drop_rounded,
+      themeColor: Color(0xFF0EA5E9),
+      bgColor: Color(0xFFE0F2FE),
+      titleEn: 'Gentle Rain',
+      titleSi: 'සුවදායී වැස්ස',
+      descEn: 'Soft rain on leaves',
+      descSi: 'මනස නිවන වැස්ස',
+    ),
+    'forest': _SoundMeta(
+      emoji: '🌲',
+      icon: Icons.park_rounded,
+      themeColor: Color(0xFF10B981),
+      bgColor: Color(0xFFD1FAE5),
+      titleEn: 'Forest Wind',
+      titleSi: 'වනාන්තරය',
+      descEn: 'Whispering pine trees',
+      descSi: 'ගස් අතරින් සුළඟ',
+    ),
+    'crickets': _SoundMeta(
+      emoji: '🦗',
+      icon: Icons.nightlight_round,
+      themeColor: Color(0xFF8B5CF6),
+      bgColor: Color(0xFFEDE9FE),
+      titleEn: 'Night Crickets',
+      titleSi: 'රැහැයියන්',
+      descEn: 'Peaceful starry night',
+      descSi: 'සන්සුන් රාත්‍රිය',
+    ),
+    'brown_noise': _SoundMeta(
+      emoji: '📻',
+      icon: Icons.blur_linear_rounded,
+      themeColor: Color(0xFFB45309),
+      bgColor: Color(0xFFFEF3C7),
+      titleEn: 'Deep Sleep Wave',
+      titleSi: 'සුව නින්දේ තරංග',
+      descEn: 'Calms racing thoughts',
+      descSi: 'නින්ද නොයාමට',
+    ),
+    'pink_noise': _SoundMeta(
+      emoji: '🌸',
+      icon: Icons.graphic_eq_rounded,
+      themeColor: Color(0xFFEC4899),
+      bgColor: Color(0xFFFCE7F3),
+      titleEn: 'Noise Blocker',
+      titleSi: 'බාහිර ශබ්ද ආවරණය',
+      descEn: 'Masks room sounds',
+      descSi: 'බාධා වළකයි',
+    ),
+  };
 
-  String _cleanTrackTitle(String title) {
-    return title
-        .replaceAll('Cascading ', '')
-        .replaceAll('Soothing ', '')
-        .replaceAll('Deep ', '')
-        .replaceAll('Gentle ', '');
+  _SoundMeta _getMeta(String id, String fallbackTitle) {
+    return _meta[id] ??
+        _SoundMeta(
+          emoji: '🎵',
+          icon: Icons.music_note_rounded,
+          themeColor: const Color(0xFF0284C7),
+          bgColor: const Color(0xFFE0F2FE),
+          titleEn: fallbackTitle.replaceAll(RegExp(r'^(Cascading|Soothing|Deep|Gentle)\s+'), ''),
+          titleSi: 'ස්වභාවික නාදය',
+          descEn: 'Custom soothing sound',
+          descSi: 'සුවදායී නාදය',
+        );
   }
 
   @override
@@ -56,8 +136,9 @@ class SoundscapeMixerDialog extends ConsumerWidget {
 
     final defaultTracks = SoundTrack.defaultTracks;
 
-    final primaryTeal = const Color(0xFF0C4648);
-    final goldAmber = const Color(0xFFD97706);
+    final primaryMeta = _getMeta(primaryTrack.id, primaryTrack.title);
+    final secondaryMeta = secondaryTrack != null ? _getMeta(secondaryTrack.id, secondaryTrack.title) : null;
+
     final textColor = isDark ? const Color(0xFFE8F6F4) : const Color(0xFF0C4648);
     final subtitleColor = isDark ? const Color(0xFF88ACAA) : const Color(0xFF506E70);
 
@@ -75,7 +156,7 @@ class SoundscapeMixerDialog extends ConsumerWidget {
           decoration: BoxDecoration(
             color: isDark
                 ? const Color(0xFF0F2027).withValues(alpha: 0.94)
-                : Colors.white.withValues(alpha: 0.94),
+                : Colors.white.withValues(alpha: 0.95),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             border: Border.all(
               color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.8),
@@ -244,59 +325,74 @@ class SoundscapeMixerDialog extends ConsumerWidget {
 
                 const SizedBox(height: 22),
 
-                // 1. PRIMARY SOUND SECTION
+                // 1. PRIMARY SOUND SECTION (OVERFLOW FIXED with Expanded)
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       isSi ? '1. ප්‍රධාන ස්වභාවික නාදය' : '1. PRIMARY NATURE SOUND',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.1,
-                        color: const Color(0xFF0284C7),
+                        color: Color(0xFF0284C7),
                       ),
                     ),
-                    Text(
-                      isSi ? _getTrackTitleSi(primaryTrack.id) : _cleanTrackTitle(primaryTrack.title),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${primaryMeta.emoji} ${isSi ? primaryMeta.titleSi : primaryMeta.titleEn}',
+                        textAlign: TextAlign.end,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
 
-                // Senior-Friendly Primary Track Grid Wrap (Easy to see and tap!)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: defaultTracks.map((track) {
+                // Modern 2-Column Senior-Friendly Sound Grid for Primary Layer
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: defaultTracks.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 2.3,
+                  ),
+                  itemBuilder: (context, index) {
+                    final track = defaultTracks[index];
+                    final meta = _getMeta(track.id, track.title);
                     final isSelected = track.id == primaryTrack.id;
+
                     return ScaleButton(
                       onTap: () {
                         HapticFeedback.selectionClick();
                         audioNotifier.selectTrack(track);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? const Color(0xFF0284C7)
-                              : (isDark ? Colors.white.withValues(alpha: 0.06) : const Color(0xFFF0F9FF)),
-                          borderRadius: BorderRadius.circular(14),
+                              ? (isDark ? meta.themeColor.withValues(alpha: 0.3) : meta.bgColor)
+                              : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF8FAFC)),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF0284C7)
-                                : (isDark ? Colors.white12 : const Color(0xFF0284C7).withValues(alpha: 0.2)),
+                                ? meta.themeColor
+                                : (isDark ? Colors.white12 : Colors.black12),
                             width: isSelected ? 2 : 1,
                           ),
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: const Color(0xFF0284C7).withValues(alpha: 0.3),
+                                    color: meta.themeColor.withValues(alpha: 0.25),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -304,27 +400,64 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                               : null,
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              track.icon,
-                              size: 17,
-                              color: isSelected ? Colors.white : const Color(0xFF0284C7),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              isSi ? _getTrackTitleSi(track.id) : _cleanTrackTitle(track.title),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                color: isSelected ? Colors.white : textColor,
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? meta.themeColor
+                                    : (isDark ? Colors.white12 : Colors.white),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: meta.themeColor.withValues(alpha: isSelected ? 0.8 : 0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  meta.emoji,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isSi ? meta.titleSi : meta.titleEn,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? (isDark ? Colors.white : meta.themeColor) : textColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 1),
+                                  Text(
+                                    isSi ? meta.descSi : meta.descEn,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      color: subtitleColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(Icons.check_circle_rounded, color: meta.themeColor, size: 16),
                           ],
                         ),
                       ),
                     );
-                  }).toList(),
+                  },
                 ),
 
                 const SizedBox(height: 14),
@@ -333,10 +466,10 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : primaryTeal).withValues(alpha: 0.05),
+                    color: (isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: (isDark ? Colors.white12 : primaryTeal.withValues(alpha: 0.1)),
+                      color: (isDark ? Colors.white12 : const Color(0xFF0C4648).withValues(alpha: 0.1)),
                     ),
                   ),
                   child: Row(
@@ -376,14 +509,13 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                   ),
                 ),
 
-                // 2. SECONDARY SOUND SECTION (When Enabled)
+                // 2. SECONDARY SOUND SECTION (When Enabled - OVERFLOW FIXED with Expanded)
                 if (isMixerEnabled) ...[
                   const SizedBox(height: 22),
                   const Divider(height: 1),
                   const SizedBox(height: 18),
 
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         isSi ? '2. පසුබිමින් මිශ්‍ර වන දෙවන නාදය' : '2. SECONDARY BACKGROUND LAYER',
@@ -394,47 +526,63 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                           color: Color(0xFFD97706),
                         ),
                       ),
-                      if (secondaryTrack != null)
-                        Text(
-                          isSi ? _getTrackTitleSi(secondaryTrack.id) : _cleanTrackTitle(secondaryTrack.title),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? const Color(0xFFFDBA74) : const Color(0xFFB45309),
+                      const SizedBox(width: 8),
+                      if (secondaryMeta != null)
+                        Expanded(
+                          child: Text(
+                            '${secondaryMeta.emoji} ${isSi ? secondaryMeta.titleSi : secondaryMeta.titleEn}',
+                            textAlign: TextAlign.end,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? const Color(0xFFFDBA74) : const Color(0xFFB45309),
+                            ),
                           ),
                         ),
                     ],
                   ),
                   const SizedBox(height: 10),
 
-                  // Secondary Track Grid Wrap
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: defaultTracks.map((track) {
+                  // Modern 2-Column Grid for Secondary Track Selection
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: defaultTracks.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 2.3,
+                    ),
+                    itemBuilder: (context, index) {
+                      final track = defaultTracks[index];
+                      final meta = _getMeta(track.id, track.title);
                       final isSelected = secondaryTrack != null && track.id == secondaryTrack.id;
+
                       return ScaleButton(
                         onTap: () {
                           HapticFeedback.selectionClick();
                           audioNotifier.selectSecondaryTrack(track);
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? const Color(0xFFD97706)
-                                : (isDark ? Colors.white.withValues(alpha: 0.06) : const Color(0xFFFFFBEB)),
-                            borderRadius: BorderRadius.circular(14),
+                                ? (isDark ? const Color(0xFFD97706).withValues(alpha: 0.3) : const Color(0xFFFEF3C7))
+                                : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF8FAFC)),
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected
                                   ? const Color(0xFFD97706)
-                                  : (isDark ? Colors.white12 : const Color(0xFFD97706).withValues(alpha: 0.25)),
+                                  : (isDark ? Colors.white12 : Colors.black12),
                               width: isSelected ? 2 : 1,
                             ),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: const Color(0xFFD97706).withValues(alpha: 0.3),
+                                      color: const Color(0xFFD97706).withValues(alpha: 0.25),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -442,27 +590,64 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                                 : null,
                           ),
                           child: Row(
-                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                track.icon,
-                                size: 17,
-                                color: isSelected ? Colors.white : const Color(0xFFD97706),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                isSi ? _getTrackTitleSi(track.id) : _cleanTrackTitle(track.title),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                  color: isSelected ? Colors.white : textColor,
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? const Color(0xFFD97706)
+                                      : (isDark ? Colors.white12 : Colors.white),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFFD97706).withValues(alpha: isSelected ? 0.8 : 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    meta.emoji,
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isSi ? meta.titleSi : meta.titleEn,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected ? const Color(0xFFB45309) : textColor,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      isSi ? meta.descSi : meta.descEn,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 10.5,
+                                        color: subtitleColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isSelected)
+                                const Icon(Icons.check_circle_rounded, color: Color(0xFFD97706), size: 16),
                             ],
                           ),
                         ),
                       );
-                    }).toList(),
+                    },
                   ),
 
                   const SizedBox(height: 14),
@@ -471,10 +656,10 @@ class SoundscapeMixerDialog extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: (isDark ? Colors.white : goldAmber).withValues(alpha: 0.05),
+                      color: (isDark ? Colors.white : const Color(0xFFD97706)).withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: (isDark ? Colors.white12 : goldAmber.withValues(alpha: 0.2)),
+                        color: (isDark ? Colors.white12 : const Color(0xFFD97706).withValues(alpha: 0.2)),
                       ),
                     ),
                     child: Row(
