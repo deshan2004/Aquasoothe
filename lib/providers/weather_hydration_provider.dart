@@ -59,6 +59,25 @@ class WeatherHydrationNotifier extends StateNotifier<WeatherHydrationModel> {
     }
   }
 
+  /// Fetches live weather for custom coordinates & updates state
+  Future<void> setCoordinatesAndFetchWeather(double lat, double lon, String locationName) async {
+    _isLoading = true;
+    try {
+      final data = await WeatherLocationService.fetchWeatherForCoordinates(lat, lon, locationName);
+      final updated = state.copyWith(
+        locationName: data.locationName,
+        temperatureCelsius: data.temperature,
+        humidityPercent: data.humidity,
+      );
+      state = updated;
+      await _repository.saveWeatherSettings(updated);
+      _syncWithHydrationGoal();
+    } catch (_) {
+    } finally {
+      _isLoading = false;
+    }
+  }
+
   Future<void> updateTemperature(double temp) async {
     final updated = state.copyWith(temperatureCelsius: temp);
     state = updated;

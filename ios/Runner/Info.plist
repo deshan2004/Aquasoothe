@@ -4,6 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Aquasoothe uses your location to track live weather and automatically adjust your hydration target.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Aquasoothe uses your location to track live weather and automatically adjust your hydration target.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Aquasoothe uses speech recognition to process your voice commands.</string>
 	<key>NSMicrophoneUsageDescription</key>

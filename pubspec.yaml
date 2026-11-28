@@ -50,6 +50,7 @@ dependencies:
   google_sign_in: ^6.2.2
   just_audio_background: ^0.0.1-beta.17
   file_picker: ^13.3.2
+  geolocator: ^14.0.1
 
 dev_dependencies:
   flutter_test:

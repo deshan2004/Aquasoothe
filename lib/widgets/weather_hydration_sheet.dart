@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
 import '../providers/weather_hydration_provider.dart';
+import '../services/weather_location_service.dart';
 import 'scale_button.dart';
 
 /// Global helper to show the Smart Weather-based Hydration Modal Sheet
@@ -68,6 +69,19 @@ class _WeatherHydrationSheetState extends ConsumerState<WeatherHydrationSheet> {
         setState(() => _isTracking = false);
       }
     }
+  }
+
+  void _openLocationPicker(BuildContext context, bool isSi, bool isDark) {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => LocationPickerSheet(isSi: isSi, isDark: isDark),
+    );
   }
 
   @override
@@ -382,23 +396,57 @@ class _WeatherHydrationSheetState extends ConsumerState<WeatherHydrationSheet> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.location_on_rounded,
-                                    size: 16,
-                                    color: const Color(0xFF0284C7),
+                              InkWell(
+                                onTap: () => _openLocationPicker(context, isSi, isDark),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.location_on_rounded,
+                                        size: 16,
+                                        color: Color(0xFF0284C7),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context).size.width * 0.36,
+                                        ),
+                                        child: Text(
+                                          weatherState.locationName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: textColor,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          isSi ? 'වෙනස්' : 'Change',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF0284C7),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    weatherState.locationName,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Row(
@@ -760,3 +808,372 @@ class _WeatherHydrationSheetState extends ConsumerState<WeatherHydrationSheet> {
     );
   }
 }
+
+/// Frosted Glass Location Selector & City Search Bottom Sheet
+class LocationPickerSheet extends ConsumerStatefulWidget {
+  final bool isSi;
+  final bool isDark;
+
+  const LocationPickerSheet({
+    super.key,
+    required this.isSi,
+    required this.isDark,
+  });
+
+  @override
+  ConsumerState<LocationPickerSheet> createState() => _LocationPickerSheetState();
+}
+
+class _LocationPickerSheetState extends ConsumerState<LocationPickerSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSearch(String query) async {
+    if (query.trim().isEmpty) {
+      if (mounted) {
+        setState(() {
+          _searchResults = [];
+          _isSearching = false;
+        });
+      }
+      return;
+    }
+
+    setState(() => _isSearching = true);
+    final results = await WeatherLocationService.searchCities(query);
+    if (!mounted) return;
+    setState(() {
+      _searchResults = results;
+      _isSearching = false;
+    });
+  }
+
+  void _selectCity(double lat, double lon, String fullName) {
+    HapticFeedback.mediumImpact();
+    ref.read(weatherHydrationProvider.notifier).setCoordinatesAndFetchWeather(lat, lon, fullName);
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          widget.isSi
+              ? '📍 ස්ථානය සාර්ථකව වෙනස් විය: $fullName'
+              : '📍 Location updated to $fullName',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF0C4648),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _useLiveGps() async {
+    HapticFeedback.mediumImpact();
+    Navigator.of(context).pop();
+    await ref.read(weatherHydrationProvider.notifier).autoDetectLocationAndWeather();
+    if (!mounted) return;
+    final updated = ref.read(weatherHydrationProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          widget.isSi
+              ? '📍 සජීවී GPS මඟින් ස්ථානය යාවත්කාලීන විය: ${updated.locationName}'
+              : '📍 Live GPS updated to ${updated.locationName}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF0C4648),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = widget.isDark ? const Color(0xFFE8F6F4) : const Color(0xFF0C4648);
+    final subtitleColor = widget.isDark ? const Color(0xFF88ACAA) : const Color(0xFF506E70);
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.75,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: widget.isDark
+                    ? [
+                        const Color(0xFF0F262B).withValues(alpha: 0.95),
+                        const Color(0xFF08181B).withValues(alpha: 0.98),
+                      ]
+                    : [
+                        Colors.white.withValues(alpha: 0.95),
+                        const Color(0xFFEDF8F7).withValues(alpha: 0.98),
+                      ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: widget.isDark ? 0.16 : 0.8),
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    width: 42,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: textColor.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.location_city_rounded, color: Color(0xFF0284C7), size: 22),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.isSi ? 'ස්ථානය තෝරන්න' : 'Select Location',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close_rounded, color: subtitleColor),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Live GPS 1-Tap Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ScaleButton(
+                    onTap: _useLiveGps,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0C4648), Color(0xFF0284C7)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF70D6CE).withValues(alpha: 0.4),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0C4648).withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.my_location_rounded, color: Color(0xFF70D6CE), size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.isSi ? 'සජීවී GPS මඟින් හඳුනාගන්න' : 'Detect My Exact Live GPS Location',
+                            style: const TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: (widget.isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: (widget.isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _handleSearch,
+                      style: TextStyle(color: textColor, fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: widget.isSi
+                            ? 'නගරය සොයන්න (උදා: Kandy, Galle, Malabe)...'
+                            : 'Search city or town (e.g. Kandy, Galle)...',
+                        hintStyle: TextStyle(color: subtitleColor, fontSize: 13),
+                        prefixIcon: Icon(Icons.search_rounded, color: subtitleColor, size: 20),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(Icons.clear_rounded, color: subtitleColor, size: 18),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _handleSearch('');
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                // Content: Either Search Results or Popular Cities
+                Expanded(
+                  child: _isSearching
+                      ? const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        )
+                      : _searchResults.isNotEmpty
+                          ? ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                              itemCount: _searchResults.length,
+                              separatorBuilder: (_, _) => const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final item = _searchResults[index];
+                                final fullName = item['fullName'] as String;
+                                final lat = item['lat'] as double;
+                                final lon = item['lon'] as double;
+
+                                return InkWell(
+                                  onTap: () => _selectCity(lat, lon, fullName),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: (widget.isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.05),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: (widget.isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.1),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.place_rounded, size: 18, color: Color(0xFF0284C7)),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            fullName,
+                                            style: TextStyle(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.w600,
+                                              color: textColor,
+                                            ),
+                                          ),
+                                        ),
+                                        const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFF0284C7)),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : SingleChildScrollView(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.isSi ? 'ශ්‍රී ලංකාවේ ප්‍රධාන නගර' : 'Popular Sri Lankan Cities',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: subtitleColor,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: WeatherLocationService.sriLankanPresetsList.map((city) {
+                                      final name = city['name'] as String;
+                                      final fullName = city['fullName'] as String;
+                                      final lat = city['lat'] as double;
+                                      final lon = city['lon'] as double;
+
+                                      return ScaleButton(
+                                        onTap: () => _selectCity(lat, lon, fullName),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                                          decoration: BoxDecoration(
+                                            color: (widget.isDark ? Colors.white : const Color(0xFF0C4648)).withValues(alpha: 0.06),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.location_city_rounded, size: 14, color: Color(0xFF0284C7)),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                name,
+                                                style: TextStyle(
+                                                  fontSize: 12.5,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: textColor,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
